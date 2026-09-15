@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://cdn.jsdelivr.net 'nonce-S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:;">
+<title>Simulados — Luiza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --navy: #16233d;
+    --navy-deep: #0e1728;
+    --parchment: #f4efe4;
+    --parchment-dark: #e8e0cf;
+    --gold: #b8912f;
+    --gold-light: #d9b968;
+    --ink: #1c1c1c;
+    --ink-soft: #4a4a4a;
+    --right: #2f6b4f;
+    --right-bg: #e3ede6;
+    --wrong: #a53d30;
+    --wrong-bg: #f3e4e0;
+    --rose: #a6455a;
+    --rose-bg: #f5e6e9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background: var(--navy-deep);
+    color: var(--ink);
+    min-height:100vh;
+  }
+  .app{
+    max-width: 920px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--parchment);
+    box-shadow: 0 0 60px rgba(0,0,0,0.4);
+    display:flex;
+    flex-direction:column;
+  }
+
+  header.top{
+    background: var(--navy);
+    color: var(--parchment);
+    padding: 28px 32px 24px;
+    border-bottom: 4px solid var(--gold);
+    position:relative;
+  }
+  header.top .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--gold-light);
+    margin: 0 0 6px;
+  }
+  header.top h1{
+    font-family:'Lora', serif;
+    font-weight:600;
+    font-size: 30px;
+    margin: 0;
+    line-height:1.15;
+  }
+  header.top .sub{
+    margin: 8px 0 0;
+    font-size: 14.5px;
+    color: #cdd6e4;
+    max-width: 55ch;
+    line-height:1.5;
+  }
+  .back-link{
+    background:none;
+    border:none;
+    color: var(--gold-light);
+    font-family:'Inter',sans-serif;
+    font-size: 13.5px;
+    cursor:pointer;
+    padding: 0;
+    margin-bottom: 14px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .back-link:hover{ color: var(--parchment); }
+
+  main{
+    flex:1;
+    padding: 36px 32px 48px;
+  }
+
+  /* ---------- Loading / error ---------- */
+  .center-note{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height:1.6;
+  }
+  .center-note .retry{
+    margin-top: 18px;
+  }
+
+  /* ---------- Daily card ---------- */
+  .daily-card{
+    background: var(--navy);
+    color: var(--parchment);
+    padding: 24px 26px;
+    margin-bottom: 30px;
+    border-left: 4px solid var(--gold-light);
+    position: relative;
+  }
+  .daily-card .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--gold-light);
+    margin: 0 0 8px;
+  }
+  .daily-card h2{
+    font-family:'Lora', serif;
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+  .daily-card p.desc{
+    font-size: 14px;
+    color: #cdd6e4;
+    margin: 0 0 18px;
+    max-width: 50ch;
+    line-height:1.55;
+  }
+  .daily-card .done-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .daily-card .done-score{
+    font-family:'Lora', serif;
+    font-size: 26px;
+    font-weight:700;
+  }
+  .daily-card .done-msg{
+    background: rgba(217,185,104,0.15);
+    border-left: 3px solid var(--gold-light);
+    padding: 12px 16px;
+    font-size: 14.5px;
+    line-height:1.5;
+    margin-top: 14px;
+  }
+
+  /* ---------- Subject picker (home) ---------- */
+  .subject-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 1px solid var(--parchment-dark);
+  }
+  .subject-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 16px;
+    padding: 20px 4px;
+    border-bottom: 1px solid var(--parchment-dark);
+    background: none;
+    border-left:none; border-right:none; border-top:none;
+    width:100%;
+    text-align:left;
+    cursor:pointer;
+    font-family:inherit;
+    color: inherit;
+    transition: padding-left 0.15s ease;
+  }
+  .subject-row:hover{
+    padding-left: 12px;
+    background: rgba(184,145,47,0.07);
+  }
+  .subject-row .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    width: 34px;
+    flex-shrink:0;
+  }
+  .subject-row .title{
+    font-family:'Lora', serif;
+    font-size: 19px;
+    font-weight:600;
+    flex:1;
+  }
+  .subject-row .meta{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    flex-shrink:0;
+  }
+  .subject-row .arrow{
+    color: var(--gold);
+    font-size: 18px;
+    flex-shrink:0;
+  }
+
+  .intro-note{
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height:1.6;
+    margin: 0 0 26px;
+    max-width: 62ch;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom: 26px;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background: var(--parchment-dark);
+    border-radius: 3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background: var(--gold);
+    transition: width 0.3s ease;
+  }
+  .progress-fill.rose{ background: var(--rose); }
+  .progress-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .question-card{
+    background:#fff;
+    border: 1px solid var(--parchment-dark);
+    border-left: 4px solid var(--gold);
+    padding: 26px 28px;
+    margin-bottom: 22px;
+  }
+  .question-card.daily{ border-left-color: var(--rose); }
+  .question-card .art-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    margin: 0 0 10px;
+    display:flex;
+    gap: 10px;
+    align-items:center;
+  }
+  .question-card.daily .art-label{ color: var(--rose); }
+  .question-card .subject-badge{
+    background: var(--parchment-dark);
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .question-card .statement{
+    font-family:'Lora', serif;
+    font-size: 18.5px;
+    line-height:1.55;
+    margin:0;
+    color: var(--ink);
+  }
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap: 12px;
+  }
+  .option{
+    display:flex;
+    gap: 14px;
+    align-items:flex-start;
+    padding: 16px 18px;
+    background:#fff;
+    border: 1px solid var(--parchment-dark);
+    cursor:pointer;
+    text-align:left;
+    font-family:'Inter',sans-serif;
+    font-size: 15px;
+    line-height:1.5;
+    color: var(--ink);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .option:hover:not(.locked){
+    border-color: var(--gold);
+    background: #fffdf6;
+  }
+  .option .letter{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    color: var(--gold);
+    flex-shrink:0;
+    width: 18px;
+  }
+  .option.locked{ cursor:default; }
+  .option.correct{
+    background: var(--right-bg);
+    border-color: var(--right);
+  }
+  .option.correct .letter{ color: var(--right); }
+  .option.incorrect{
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+  }
+  .option.incorrect .letter{ color: var(--wrong); }
+  .option.dim{ opacity: 0.55; }
+
+  .explanation{
+    margin-top: 10px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height:1.6;
+    border-left: 3px solid;
+  }
+  .explanation.right{
+    background: var(--right-bg);
+    border-color: var(--right);
+    color: #1f4635;
+  }
+  .explanation.wrong{
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+    color: #6d2a20;
+  }
+  .explanation .head{
+    font-weight:600;
+    display:block;
+    margin-bottom: 4px;
+  }
+
+  .next-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top: 22px;
+  }
+  button.primary{
+    background: var(--navy);
+    color: var(--parchment);
+    border:none;
+    padding: 13px 26px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 14.5px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  button.primary:hover{ background: var(--navy-deep); }
+  button.primary.rose{ background: var(--rose); }
+  button.primary.rose:hover{ background: #8a3749; }
+  button.ghost{
+    background:none;
+    border: 1px solid var(--navy);
+    color: var(--navy);
+    padding: 13px 26px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 14.5px;
+    cursor:pointer;
+  }
+  button.ghost:hover{ background: rgba(22,35,61,0.06); }
+  button.primary:disabled{ opacity:0.5; cursor:default; }
+
+  /* ---------- Result screen ---------- */
+  .result-wrap{
+    text-align:center;
+    padding: 20px 0 10px;
+  }
+  .result-score{
+    font-family:'Lora', serif;
+    font-size: 64px;
+    font-weight:700;
+    color: var(--navy);
+    margin: 10px 0 4px;
+    line-height:1;
+  }
+  .result-score span{
+    font-size: 26px;
+    color: var(--ink-soft);
+    font-weight:500;
+  }
+  .result-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing:0.03em;
+  }
+  .result-msg{
+    font-size: 15px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 18px auto 30px;
+    line-height:1.6;
+  }
+  .result-actions{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .cute-message{
+    background: var(--rose-bg);
+    border-left: 4px solid var(--rose);
+    padding: 22px 24px;
+    max-width: 48ch;
+    margin: 8px auto 28px;
+    font-family:'Lora', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: #6d2436;
+    line-height:1.6;
+    text-align:left;
+  }
+
+  @media (max-width: 600px){
+    header.top{ padding: 22px 18px 20px; }
+    header.top h1{ font-size: 24px; }
+    main{ padding: 26px 18px 40px; }
+    .question-card{ padding: 20px 18px; }
+    .question-card .statement{ font-size: 17px; }
+    .result-actions{ flex-direction:column; }
+    .result-actions button{ width:100%; }
+    .daily-card{ padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div id="header-inner">
+      <p class="kicker">SIMULADOS — LUIZA</p>
+      <h1 id="header-title">Carregando…</h1>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<script nonce="S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR">
+/* ====================== CONFIG SUPABASE ====================== */
+const SUPABASE_URL = "https://ftzmtjlhtmnjsjnkmgvc.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_t8gBrQRy-O4f_7t3mBMrLQ_JZfWPvQw";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false
+  }
+});
+
+let lastLoadError = null;
+let currentUser = null;
+
+const SUBJECT_LABELS = {
+  civil: "Direito Civil",
+  processo_civil: "Processo Civil",
+  penal: "Prática Penal",
+  processo_penal: "Processo Penal",
+  trabalhista: "Prática Trabalhista",
+  empresarial: "Direito Empresarial",
+  ambiental: "Direito Ambiental",
+  oratoria: "Oratória Jurídica"
+};
+
+/* Mensagens fofas — sorteada quando ela zera o Desafio Diário (5/5) */
+const CUTE_MESSAGES = [
+  "5/5. Meu amor é oficialmente mais inteligente que eu. ❤️",
+  "Gabaritou! A futura doutora não decepciona. 🥹❤️",
+  "5/5. Orgulho da minha futura advogada. ⚖️❤️",
+  "Acertou tudo. Agora vem cá ganhar seu prêmio: um beijo. 😘",
+  "5/5. Além de linda, ainda sabe das coisas. Difícil competir. ❤️",
+  "Gabaritou! Eu já sabia que você era incrível. 🥰",
+  "5/5. Tá explicado por que eu sou tão apaixonado. ❤️",
+  "Mais uma vez, você provando que é fora da curva. 💛",
+  "5/5. A inteligência e a beleza resolveram morar na mesma pessoa. 😌❤️",
+  "Gabaritou. A OAB que lute. ⚖️🔥",
+  "5/5. Doutora, posso ser seu cliente favorito? 👀❤️",
+  "Acertou tudo! Sabia que meu orgulho não cabia nesse site. 🥹",
+  "5/5. Meu amor é oficialmente uma máquina de acertar questões. ❤️",
+  "Gabaritou de novo. Assim você me deixa ainda mais apaixonado. 🥰",
+  "5/5. Linda, inteligente e ainda é minha. Dei sorte demais. ❤️",
+  "Você acertou tudo. Eu continuo errando uma coisa: como consegui alguém tão incrível? ❤️",
+  "5/5. Caso encerrado: você é perfeita. ⚖️❤️",
+  "Veredito final: absolutamente maravilhosa. ❤️",
+  "5/5. Sentença: você merece muitos beijinhos. 😘",
+  "Gabaritou! Recurso negado para qualquer pessoa que diga o contrário: você é incrível. ❤️",
+  "5/5. Provas suficientes: eu te amo muito. ❤️⚖️",
+  "Caso encerrado. A futura doutora venceu mais uma. 🥰",
+  "5/5. Excelência, posso pedir um abraço? ❤️",
+  "Acertou tudo. Pena que não existe questão sobre o quanto eu te amo. 🥹❤️",
+  "5/5. Você ganha o quiz e eu ganho o privilégio de te amar. ❤️",
+  "Gabaritou. E eu aqui, todo bobo, admirando você. 🥰",
+  "5/5. Mais uma vitória pra conta da minha garota. ❤️",
+  "Veredito: inteligente demais e linda demais. ❤️",
+  "5/5. A banca tentou, mas não foi dessa vez. 😌⚖️",
+  "Gabaritou! Agora oficialmente não tenho argumentos contra você. 😂❤️",
+  "5/5. Eu já sabia que você ia conseguir. Tenho fé na minha futura doutora. ❤️",
+  "Questões: 5. Você: 5. Eu: completamente apaixonado. ❤️",
+  "5/5. Mais uma prova de que eu escolhi a mulher certa. ❤️",
+  "Acertou tudo. Agora pode cobrar seu pagamento em beijos. 😘",
+  "5/5. Parabéns, amor. Você é simplesmente incrível. ❤️",
+  "Gabaritou! Meu coração também já foi gabaritado por você. 🥹❤️",
+  "5/5. A futura advogada tá impossível hoje. 😮‍💨❤️",
+  "Decisão unânime: você é maravilhosa. ❤️",
+  "5/5. Recurso inexistente. Você simplesmente arrasou. ⚖️❤️",
+  "Fim de jogo: 5/5 e um namorado completamente apaixonado. ❤️",
+  "Você acertou as 5. Mas quem ganhou fui eu quando te encontrei. ❤️",
+  "5/5. E ainda assim, a melhor coisa que você já acertou foi me escolher. 🥹❤️",
+  "Você pode até ter acertado as questões, mas foi eu quem acertou escolhendo você. ❤️",
+  "5/5. Agora chega de prova. Vem receber seu beijo. 😘",
+  "Parabéns, amor. Eu tenho muito orgulho de você. ❤️",
+  "Mais uma vez você conseguiu. E eu vou estar aqui, sempre torcendo por você. ❤️",
+  "5/5. Que sorte a minha poder acompanhar você conquistando seus sonhos. 🥹❤️",
+  "Você gabaritou. Eu só queria aproveitar pra dizer: te amo. ❤️",
+  "Meu resultado favorito sempre vai ser você. ❤️",
+  "5/5. Agora vem cá, futura doutora. Tenho uma surpresa pra você. ❤️"
+];
+
+/* ====================== ESTADO GLOBAL ====================== */
+let ALL_QUESTIONS = [];
+let BANK_BY_SUBJECT = {};
+let dailyStatusToday = null;
+
+let state = {
+  screen: "loading",
+  subjectKey: null,
+  roundQuestions: [],
+  currentIndex: 0,
+  answered: false,
+  selectedOption: null,
+  score: 0,
+  isDaily: false,
+  dailyMessage: null
+};
+
+/* ====================== HELPERS ====================== */
+function esc(str){
+  const d = document.createElement("div");
+  d.textContent = String(str ?? "");
+  return d.innerHTML;
+}
+
+function shuffle(array){
+  const arr = array.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function hashStringToInt(str){
+  let hash = 0;
+  for(let i = 0; i < str.length; i++){
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+function mulberry32(seed){
+  let a = seed;
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function seededShuffle(array, seedStr){
+  const rand = mulberry32(hashStringToInt(seedStr));
+  const arr = array.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function pickRandomQuestions(subjectKey, count){
+  const bank = BANK_BY_SUBJECT[subjectKey] || [];
+  const n = Math.min(count, bank.length);
+  return shuffle(bank).slice(0, n);
+}
+
+function getDailyQuestions(){
+  const pool = ALL_QUESTIONS.filter(q => q.difficulty === "dificil");
+  const shuffled = seededShuffle(pool, todayStr());
+  return shuffled.slice(0, 5);
+}
+
+function pickCuteMessage(){
+  return CUTE_MESSAGES[Math.floor(Math.random() * CUTE_MESSAGES.length)];
+}
+
+function getSafeErrorMessage(err){
+  if(err?.code === "23505") return "O desafio de hoje já foi registrado.";
+  if(err?.message?.toLowerCase().includes("anonymous")) return "Não consegui iniciar sua sessão. Ative o acesso anônimo no Supabase.";
+  return "Não foi possível concluir esta operação agora. Tente novamente.";
+}
+
+/* ====================== AUTENTICAÇÃO ANÔNIMA ======================
+   Cada navegador recebe uma identidade própria do Supabase Auth.
+   Isso é melhor que IP/cookie criado manualmente porque o Supabase
+   entrega um UUID + JWT que o RLS consegue validar com auth.uid().
+=================================================================== */
+async function ensureAnonymousSession(){
+  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+  if(sessionError) throw sessionError;
+
+  if(sessionData.session?.user){
+    currentUser = sessionData.session.user;
+    return currentUser;
+  }
+
+  const { data, error } = await sb.auth.signInAnonymously();
+  if(error) throw error;
+  if(!data.user) throw new Error("Sessão anônima não criada.");
+
+  currentUser = data.user;
+  return currentUser;
+}
+
+/* ====================== CARREGAMENTO ====================== */
+async function loadEverything(){
+  state.screen = "loading";
+  lastLoadError = null;
+  render();
+
+  try {
+    await ensureAnonymousSession();
+
+    /* Nunca mais usamos select("*"). Apenas as colunas que o site realmente usa. */
+    const { data: questions, error: qErr } = await sb
+      .from("questions")
+      .select("id,subject,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty");
+
+    if(qErr) throw qErr;
+
+    ALL_QUESTIONS = (questions || []).map(row => ({
+      id: row.id,
+      subject: row.subject,
+      statement: row.statement,
+      options: {
+        A: row.option_a,
+        B: row.option_b,
+        C: row.option_c,
+        D: row.option_d
+      },
+      correct: row.correct,
+      explanations: {
+        A: row.explanation_a,
+        B: row.explanation_b,
+        C: row.explanation_c,
+        D: row.explanation_d
+      },
+      difficulty: row.difficulty
+    }));
+
+    BANK_BY_SUBJECT = {};
+    ALL_QUESTIONS.forEach(q => {
+      if(!BANK_BY_SUBJECT[q.subject]) BANK_BY_SUBJECT[q.subject] = [];
+      BANK_BY_SUBJECT[q.subject].push(q);
+    });
+
+    const { data: dailyRow, error: dErr } = await sb
+      .from("daily_attempts")
+      .select("id,attempt_date,score,completed,message_shown,created_at")
+      .eq("attempt_date", todayStr())
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if(dErr) throw dErr;
+    dailyStatusToday = dailyRow || null;
+
+    state.screen = "home";
+    render();
+  } catch(err){
+    console.error("Falha ao carregar o aplicativo:", err);
+    lastLoadError = getSafeErrorMessage(err);
+    state.screen = "error";
+    render();
+  }
+}
+
+/* ====================== AÇÕES ====================== */
+function startQuiz(subjectKey){
+  if(!Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, subjectKey)) return;
+
+  state.screen = "quiz";
+  state.subjectKey = subjectKey;
+  state.roundQuestions = pickRandomQuestions(subjectKey, 10);
+  state.currentIndex = 0;
+  state.answered = false;
+  state.selectedOption = null;
+  state.score = 0;
+  state.isDaily = false;
+  state.dailyMessage = null;
+  render();
+}
+
+function startDaily(){
+  if(!currentUser) return;
+  if(dailyStatusToday?.completed) return;
+
+  const dailyQuestions = getDailyQuestions();
+  if(dailyQuestions.length < 5){
+    lastLoadError = "Ainda não existem 5 questões difíceis disponíveis para o desafio de hoje.";
+    state.screen = "error";
+    render();
+    return;
+  }
+
+  state.screen = "daily-quiz";
+  state.roundQuestions = dailyQuestions;
+  state.currentIndex = 0;
+  state.answered = false;
+  state.selectedOption = null;
+  state.score = 0;
+  state.isDaily = true;
+  state.dailyMessage = null;
+  render();
+}
+
+function selectOption(letter){
+  if(state.answered) return;
+  if(!["A","B","C","D"].includes(letter)) return;
+
+  state.answered = true;
+  state.selectedOption = letter;
+  const q = state.roundQuestions[state.currentIndex];
+  if(q && letter === q.correct) state.score++;
+  render();
+}
+
+async function nextQuestion(){
+  if(!state.answered) return;
+
+  if(state.currentIndex < state.roundQuestions.length - 1){
+    state.currentIndex++;
+    state.answered = false;
+    state.selectedOption = null;
+    render();
+    return;
+  }
+
+  if(state.isDaily){
+    let message = null;
+    if(state.score === state.roundQuestions.length){
+      message = pickCuteMessage();
+    }
+    state.dailyMessage = message;
+
+    try {
+      const payload = {
+        user_id: currentUser.id,
+        attempt_date: todayStr(),
+        score: state.score,
+        completed: true,
+        message_shown: message
+      };
+
+      const { data, error } = await sb
+        .from("daily_attempts")
+        .upsert(payload, { onConflict: "user_id,attempt_date" })
+        .select("id,attempt_date,score,completed,message_shown,created_at")
+        .single();
+
+      if(error) throw error;
+      dailyStatusToday = data;
+    } catch(err){
+      console.error("Falha ao registrar o daily:", err);
+      lastLoadError = getSafeErrorMessage(err);
+      state.screen = "error";
+      render();
+      return;
+    }
+
+    state.screen = "daily-result";
+    render();
+  } else {
+    state.screen = "result";
+    render();
+  }
+}
+
+function goHome(){
+  state = {
+    screen: "home",
+    subjectKey: null,
+    roundQuestions: [],
+    currentIndex: 0,
+    answered: false,
+    selectedOption: null,
+    score: 0,
+    isDaily: false,
+    dailyMessage: null
+  };
+  render();
+}
+
+function retrySameSubject(){
+  if(state.subjectKey) startQuiz(state.subjectKey);
+}
+
+/* ====================== RENDER ====================== */
+function renderHeader(){
+  const titleEl = document.getElementById("header-title");
+  const inner = document.getElementById("header-inner");
+
+  let backHtml = "";
+  if(state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
+    backHtml = `<button type="button" class="back-link" data-action="home">&larr; voltar às matérias</button>`;
+  }
+
+  if(state.screen === "loading"){
+    inner.innerHTML = `<p class="kicker">SIMULADOS — LUIZA</p><h1>Carregando o banco de questões…</h1>`;
+  } else if(state.screen === "error"){
+    inner.innerHTML = `<p class="kicker">SIMULADOS — LUIZA</p><h1>Não consegui carregar</h1>`;
+  } else if(state.screen === "home"){
+    inner.innerHTML = `
+      <p class="kicker">SIMULADOS — LUIZA</p>
+      <h1>Escolha a matéria</h1>
+      <p class="sub">Dez questões sorteadas do banco a cada rodada, no estilo das provas da OAB e da FGV. Toda alternativa vem com explicação — certa ou errada.</p>
+    `;
+  } else if(state.screen === "quiz"){
+    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Simulado em andamento</h1>`;
+  } else if(state.screen === "result"){
+    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Resultado do simulado</h1>`;
+  } else if(state.screen === "daily-quiz"){
+    inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>5 questões difíceis de hoje</h1>`;
+  } else if(state.screen === "daily-result"){
+    inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>Resultado de hoje</h1>`;
+  }
+}
+
+function renderLoading(){
+  document.getElementById("main").innerHTML = `<p class="center-note">Preparando seu desafio…</p>`;
+}
+
+function renderError(){
+  document.getElementById("main").innerHTML = `
+    <p class="center-note">
+      ${esc(lastLoadError || "Não foi possível carregar as questões agora. Confira sua conexão e tente novamente.")}
+      <br><br>
+      <button type="button" class="primary retry" data-action="retry">Tentar novamente</button>
+    </p>
+  `;
+}
+
+function renderDailyCard(){
+  const total = 5;
+  if(dailyStatusToday?.completed){
+    const score = Number.isInteger(dailyStatusToday.score) ? dailyStatusToday.score : 0;
+    const perfect = score === total;
+    return `
+      <div class="daily-card">
+        <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
+        <h2>Você já jogou hoje</h2>
+        <div class="done-row">
+          <span class="done-score">${score}/${total}</span>
+          <span style="font-size:13.5px;color:#cdd6e4;">Volte amanhã pra um novo desafio.</span>
+        </div>
+        ${perfect && dailyStatusToday.message_shown ? `<div class="done-msg">${esc(dailyStatusToday.message_shown)}</div>` : ""}
+      </div>
+    `;
+  }
+  return `
+    <div class="daily-card">
+      <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
+      <h2>5 questões difíceis, sorteadas entre todas as matérias</h2>
+      <p class="desc">O mesmo desafio vale para você durante o dia. Acerte as 5 e algo especial aparece no final.</p>
+      <button type="button" class="primary rose" data-action="daily">Começar desafio de hoje &rarr;</button>
+    </div>
+  `;
+}
+
+function renderHome(){
+  const main = document.getElementById("main");
+  const keys = Object.keys(SUBJECT_LABELS).filter(k => BANK_BY_SUBJECT[k] && BANK_BY_SUBJECT[k].length);
+  let rows = keys.map((key, i) => {
+    const label = SUBJECT_LABELS[key];
+    const count = BANK_BY_SUBJECT[key].length;
+    const num = String(i + 1).padStart(2, "0");
+    return `
+      <button type="button" class="subject-row" data-subject="${esc(key)}">
+        <span class="num">${num}</span>
+        <span class="title">${esc(label)}</span>
+        <span class="meta">${count} no banco</span>
+        <span class="arrow">&rarr;</span>
+      </button>
+    `;
+  }).join("");
+
+  main.innerHTML = `
+    ${renderDailyCard()}
+    <p class="intro-note">Cada simulado sorteia 10 questões do banco daquela matéria. Ao escolher uma alternativa, o site mostra na hora por que ela está certa ou errada — dá pra refazer o mesmo simulado quantas vezes quiser, sempre com uma combinação diferente.</p>
+    <div class="subject-grid">${rows}</div>
+  `;
+
+  main.querySelectorAll("[data-subject]").forEach(button => {
+    button.addEventListener("click", () => startQuiz(button.dataset.subject));
+  });
+}
+
+function renderQuizLike(isDaily){
+  const main = document.getElementById("main");
+  const q = state.roundQuestions[state.currentIndex];
+  if(!q) return;
+
+  const total = state.roundQuestions.length;
+  const pct = Math.round(((state.currentIndex + 1) / total) * 100);
+  const letters = ["A","B","C","D"];
+
+  let optionsHtml = letters.map(letter => {
+    let cls = "option";
+    if(state.answered){
+      cls += " locked";
+      if(letter === q.correct) cls += " correct";
+      else if(letter === state.selectedOption) cls += " incorrect";
+      else cls += " dim";
+    }
+
+    return `
+      <button type="button" class="${cls}" data-option="${letter}" ${state.answered ? "disabled" : ""}>
+        <span class="letter">${letter}</span>
+        <span>${esc(q.options[letter])}</span>
+      </button>
+    `;
+  }).join("");
+
+  let explanationHtml = "";
+  if(state.answered){
+    const isRight = state.selectedOption === q.correct;
+    if(isRight){
+      explanationHtml = `<div class="explanation right"><span class="head">Por que está certa</span>${esc(q.explanations[q.correct])}</div>`;
+    } else {
+      explanationHtml = `
+        <div class="explanation wrong"><span class="head">Por que a alternativa ${esc(state.selectedOption)} está errada</span>${esc(q.explanations[state.selectedOption])}</div>
+        <div class="explanation right" style="margin-top:12px;"><span class="head">Por que a alternativa ${esc(q.correct)} está certa</span>${esc(q.explanations[q.correct])}</div>
+      `;
+    }
+  }
+
+  const isLast = state.currentIndex === total - 1;
+
+  main.innerHTML = `
+    <div class="progress-row">
+      <span class="progress-label">${state.currentIndex + 1} / ${total}</span>
+      <div class="progress-track"><div class="progress-fill ${isDaily ? "rose" : ""}" style="width:${pct}%"></div></div>
+      <span class="progress-label">${state.score} acertos</span>
+    </div>
+    <div class="question-card ${isDaily ? "daily" : ""}">
+      <p class="art-label">QUESTÃO ${state.currentIndex + 1}${isDaily ? `<span class="subject-badge">${esc(SUBJECT_LABELS[q.subject] || q.subject)}</span>` : ""}</p>
+      <p class="statement">${esc(q.statement)}</p>
+    </div>
+    <div class="options">${optionsHtml}</div>
+    ${explanationHtml}
+    ${state.answered ? `
+      <div class="next-row">
+        <button type="button" class="primary ${isDaily ? "rose" : ""}" id="next-question">${isLast ? "Ver resultado final" : "Próxima questão"} &rarr;</button>
+      </div>
+    ` : ""}
+  `;
+
+  main.querySelectorAll("[data-option]").forEach(button => {
+    button.addEventListener("click", () => selectOption(button.dataset.option));
+  });
+
+  const nextButton = document.getElementById("next-question");
+  if(nextButton) nextButton.addEventListener("click", nextQuestion);
+}
+
+function renderResult(){
+  const main = document.getElementById("main");
+  const total = state.roundQuestions.length;
+  const pct = total ? Math.round((state.score / total) * 100) : 0;
+
+  let msg;
+  if(pct >= 80) msg = "Excelente domínio da matéria — esse desempenho já está no nível de aprovação.";
+  else if(pct >= 60) msg = "Bom resultado. Vale revisar os pontos que geraram dúvida e repetir o simulado.";
+  else msg = "Ainda dá pra melhorar bastante. Recomendo revisar a matéria e tentar de novo — os erros de agora viram acerto na próxima rodada.";
+
+  main.innerHTML = `
+    <div class="result-wrap">
+      <p class="result-label">DESEMPENHO NESTA RODADA</p>
+      <p class="result-score">${state.score}<span>/${total}</span></p>
+      <p class="result-label">${pct}% DE APROVEITAMENTO</p>
+      <p class="result-msg">${esc(msg)}</p>
+      <div class="result-actions">
+        <button type="button" class="primary" id="retry-subject">Refazer este simulado &rarr;</button>
+        <button type="button" class="ghost" id="choose-subject">Escolher outra matéria</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("retry-subject").addEventListener("click", retrySameSubject);
+  document.getElementById("choose-subject").addEventListener("click", goHome);
+}
+
+function renderDailyResult(){
+  const main = document.getElementById("main");
+  const total = state.roundQuestions.length;
+  const perfect = state.score === total;
+
+  main.innerHTML = `
+    <div class="result-wrap">
+      <p class="result-label">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
+      <p class="result-score">${state.score}<span>/${total}</span></p>
+      ${perfect ? `<div class="cute-message">${esc(state.dailyMessage)}</div>` : `<p class="result-msg">Quase lá! Amanhã tem um novo desafio — bora tentar de novo.</p>`}
+      <div class="result-actions">
+        <button type="button" class="ghost" id="back-home">Voltar ao início</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("back-home").addEventListener("click", goHome);
+}
+
+function bindStaticActions(){
+  document.querySelectorAll('[data-action="home"]').forEach(el => {
+    el.addEventListener("click", goHome);
+  });
+  document.querySelectorAll('[data-action="retry"]').forEach(el => {
+    el.addEventListener("click", loadEverything);
+  });
+  document.querySelectorAll('[data-action="daily"]').forEach(el => {
+    el.addEventListener("click", startDaily);
+  });
+}
+
+function render(){
+  renderHeader();
+  if(state.screen === "loading") renderLoading();
+  else if(state.screen === "error") renderError();
+  else if(state.screen === "home") renderHome();
+  else if(state.screen === "quiz") renderQuizLike(false);
+  else if(state.screen === "result") renderResult();
+  else if(state.screen === "daily-quiz") renderQuizLike(true);
+  else if(state.screen === "daily-result") renderDailyResult();
+  bindStaticActions();
+  window.scrollTo({top: 0, behavior: "instant"});
+}
+
+/* Se a sessão expirar, recarrega a identidade antes da próxima operação. */
+sb.auth.onAuthStateChange((_event, session) => {
+  currentUser = session?.user || null;
+});
+
+loadEverything();
+</script>
+</body>
+</html>
