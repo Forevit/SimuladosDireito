@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -9,14 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://cdn.jsdelivr.net 'nonce-S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:;">
 <title>Simulados — Luiza</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<!-- Favicon do Eduardo Ferreira -->
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -311,6 +303,12 @@
     width: 18px;
   }
   .option.locked{ cursor:default; }
+  .option.selected{
+    border-color: var(--gold);
+    background: #fffdf6;
+    box-shadow: inset 3px 0 0 var(--gold);
+  }
+  .option.selected .letter{ color: var(--gold); }
   .option.correct{
     background: var(--right-bg);
     border-color: var(--right);
@@ -441,266 +439,6 @@
     .result-actions button{ width:100%; }
     .daily-card{ padding: 20px 18px; }
   }
-
-
-/* ================================================================
-   EDUARDO FERREIRA — VISUAL SYSTEM
-   Interface inspirada no portfólio: dark glass + blue/indigo/green.
-   Apenas apresentação; lógica do quiz permanece intacta.
-   ================================================================ */
-:root{
-  --navy: #050a1a;
-  --navy-deep: #050a1a;
-  --parchment: #f1f5f9;
-  --parchment-dark: rgba(255,255,255,.10);
-  --gold: #38bdf8;
-  --gold-light: #7dd3fc;
-  --ink: #f1f5f9;
-  --ink-soft: #94a3b8;
-  --right: #34d399;
-  --right-bg: rgba(52,211,153,.10);
-  --wrong: #fb7185;
-  --wrong-bg: rgba(251,113,133,.10);
-  --rose: #818cf8;
-  --rose-bg: rgba(129,140,248,.10);
-  --glass: rgba(255,255,255,.06);
-  --glass-border: rgba(255,255,255,.12);
-  --glass-hover: rgba(255,255,255,.10);
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --accent: #38bdf8;
-  --accent2: #818cf8;
-  --accent3: #34d399;
-}
-
-html,body{background:var(--navy-deep);color:var(--text);}
-body{
-  font-family:'Space Grotesk',sans-serif;
-  position:relative;
-  overflow-x:hidden;
-}
-body::before,
-body::after{
-  content:"";
-  position:fixed;
-  width:520px;height:520px;
-  border-radius:50%;
-  filter:blur(90px);
-  opacity:.20;
-  pointer-events:none;
-  z-index:0;
-}
-body::before{background:#1e40af;top:-190px;left:-180px;}
-body::after{background:#4f46e5;right:-190px;top:180px;}
-
-.app{
-  position:relative;
-  z-index:1;
-  max-width:980px;
-  min-height:100vh;
-  margin:0 auto;
-  background:rgba(5,10,26,.72);
-  box-shadow:none;
-  display:flex;
-  flex-direction:column;
-  border-left:1px solid rgba(255,255,255,.04);
-  border-right:1px solid rgba(255,255,255,.04);
-}
-
-header.top{
-  background:rgba(10,15,36,.72);
-  color:var(--text);
-  padding:32px 34px 28px;
-  border-bottom:1px solid var(--glass-border);
-  position:relative;
-  overflow:hidden;
-  backdrop-filter:blur(22px);
-  -webkit-backdrop-filter:blur(22px);
-}
-header.top::after{
-  content:"";
-  position:absolute;left:0;right:0;bottom:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent);
-  opacity:.8;
-}
-header.top .kicker,
-.kicker{
-  font-family:'JetBrains Mono',monospace;
-  color:var(--accent);
-  letter-spacing:.10em;
-}
-header.top h1{
-  color:var(--text);
-  font-weight:700;
-  letter-spacing:-.02em;
-}
-header.top .sub{color:var(--muted);}
-
-main{
-  width:100%;
-  padding:34px 34px 64px;
-}
-
-.card,
-.daily-card,
-.question-card,
-.option,
-.explanation,
-.subject-row{
-  background:var(--glass);
-  border-color:var(--glass-border);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-}
-
-.daily-card{
-  border:1px solid rgba(129,140,248,.25);
-  border-left:3px solid var(--accent2);
-  border-radius:var(--radius);
-  padding:26px 28px;
-  margin-bottom:30px;
-  box-shadow:0 18px 50px rgba(0,0,0,.18);
-  position:relative;
-  overflow:hidden;
-}
-.daily-card::before{
-  content:"";position:absolute;width:220px;height:220px;right:-90px;top:-120px;
-  background:radial-gradient(circle,#818cf8,transparent 70%);opacity:.14;pointer-events:none;
-}
-.daily-card h2{color:var(--text);font-weight:700;letter-spacing:-.02em;}
-.daily-card .desc{color:var(--muted);}
-.done-score{color:var(--accent3)!important;}
-.done-msg{background:var(--rose-bg)!important;border-left-color:var(--accent2)!important;color:#c7d2fe!important;}
-
-.intro-note{color:var(--muted);}
-
-.subject-grid{display:grid;gap:12px;}
-.subject-row{
-  border:1px solid var(--glass-border);
-  border-radius:14px;
-  padding:18px 20px;
-  color:var(--text);
-  transition:transform .2s ease,border-color .2s ease,background .2s ease;
-}
-.subject-row:hover{
-  transform:translateY(-2px);
-  border-color:rgba(56,189,248,.40);
-  background:var(--glass-hover);
-}
-.subject-row .num,.subject-row .arrow{color:var(--accent);}
-.subject-row .title{font-family:'Space Grotesk',sans-serif;color:var(--text);}
-.subject-row .meta{font-family:'JetBrains Mono',monospace;color:var(--muted);}
-
-.progress-row{margin-bottom:22px;}
-.progress-track{background:rgba(255,255,255,.08);height:7px;border-radius:999px;}
-.progress-fill{background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px;}
-.progress-fill.rose{background:linear-gradient(90deg,var(--accent2),#a78bfa);}
-.progress-label{font-family:'JetBrains Mono',monospace;color:var(--muted);}
-
-.question-card{
-  border:1px solid var(--glass-border);
-  border-left:3px solid var(--accent);
-  border-radius:var(--radius);
-  padding:28px 30px;
-  box-shadow:0 18px 50px rgba(0,0,0,.16);
-}
-.question-card.daily{border-left-color:var(--accent2);}
-.question-card .art-label{font-family:'JetBrains Mono',monospace;color:var(--accent);}
-.question-card.daily .art-label{color:var(--accent2);}
-.question-card .subject-badge{
-  background:rgba(129,140,248,.12);
-  border:1px solid rgba(129,140,248,.20);
-  color:#c7d2fe;
-  border-radius:999px;
-}
-.question-card .statement{
-  font-family:'Space Grotesk',sans-serif;
-  color:var(--text);
-  font-size:18px;
-  line-height:1.65;
-}
-
-.options{gap:11px;}
-.option{
-  border:1px solid var(--glass-border);
-  border-radius:12px;
-  color:var(--text);
-  transition:transform .15s ease,border-color .15s ease,background .15s ease;
-}
-.option:hover:not(:disabled){
-  transform:translateX(3px);
-  border-color:rgba(56,189,248,.45);
-  background:rgba(56,189,248,.07);
-}
-.option .letter{
-  border:1px solid rgba(255,255,255,.16)!important;
-  background:rgba(255,255,255,.05)!important;
-  color:var(--accent)!important;
-  border-radius:8px!important;
-}
-.option.correct{background:var(--right-bg)!important;border-color:rgba(52,211,153,.45)!important;}
-.option.correct .letter{background:rgba(52,211,153,.15)!important;border-color:rgba(52,211,153,.45)!important;color:var(--accent3)!important;}
-.option.incorrect{background:var(--wrong-bg)!important;border-color:rgba(251,113,133,.45)!important;}
-.option.incorrect .letter{background:rgba(251,113,133,.14)!important;border-color:rgba(251,113,133,.40)!important;color:#fb7185!important;}
-.option.dim{opacity:.46;}
-
-.explanation{
-  border-radius:12px;
-  border:1px solid var(--glass-border);
-  padding:18px 20px;
-  color:var(--muted);
-  line-height:1.7;
-}
-.explanation.right{background:var(--right-bg);border-color:rgba(52,211,153,.28);}
-.explanation.wrong{background:var(--wrong-bg);border-color:rgba(251,113,133,.28);}
-.explanation .head{font-family:'JetBrains Mono',monospace;color:var(--text);}
-
-button.primary{
-  border:1px solid rgba(56,189,248,.35);
-  background:linear-gradient(135deg,#0284c7,#4f46e5)!important;
-  color:#fff!important;
-  border-radius:10px;
-  box-shadow:0 8px 28px rgba(37,99,235,.20);
-  transition:transform .2s ease,filter .2s ease,box-shadow .2s ease;
-}
-button.primary:hover:not(:disabled){
-  transform:translateY(-2px);
-  filter:brightness(1.08);
-  box-shadow:0 12px 34px rgba(37,99,235,.28);
-}
-button.primary.rose{
-  background:linear-gradient(135deg,#6366f1,#7c3aed)!important;
-  border-color:rgba(129,140,248,.40);
-}
-button.ghost,
-.back-link{
-  color:var(--muted)!important;
-}
-button.ghost{background:transparent!important;border:1px solid var(--glass-border)!important;border-radius:10px;}
-button.ghost:hover{color:var(--text)!important;border-color:rgba(255,255,255,.25)!important;background:var(--glass)!important;}
-
-.result-wrap{padding:26px 0 12px;}
-.result-score{font-family:'Space Grotesk',sans-serif;color:var(--accent)!important;text-shadow:0 0 30px rgba(56,189,248,.18);}
-.result-score span{color:var(--muted)!important;}
-.result-label{font-family:'JetBrains Mono',monospace;color:var(--accent)!important;}
-.result-msg{color:var(--muted)!important;}
-.cute-message{
-  background:var(--rose-bg)!important;
-  border-left:3px solid var(--accent2)!important;
-  color:#c7d2fe!important;
-  border-radius:12px;
-}
-
-.center-note{color:var(--muted);}
-
-@media (max-width:600px){
-  .app{border:0;}
-  header.top{padding:26px 20px 24px;}
-  main{padding:26px 18px 46px;}
-  .daily-card{padding:22px 20px;}
-  .question-card{padding:22px 20px;}
-}
-
 </style>
 </head>
 <body>
@@ -981,6 +719,7 @@ function startQuiz(subjectKey){
   state.currentIndex = 0;
   state.answered = false;
   state.selectedOption = null;
+  state.confirmedAnswer = false;
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
@@ -1004,6 +743,7 @@ function startDaily(){
   state.currentIndex = 0;
   state.answered = false;
   state.selectedOption = null;
+  state.confirmedAnswer = false;
   state.score = 0;
   state.isDaily = true;
   state.dailyMessage = null;
@@ -1011,23 +751,32 @@ function startDaily(){
 }
 
 function selectOption(letter){
-  if(state.answered) return;
+  if(state.confirmedAnswer) return;
   if(!["A","B","C","D"].includes(letter)) return;
 
-  state.answered = true;
+  // Apenas seleciona. A resposta só é avaliada após a confirmação.
   state.selectedOption = letter;
+  state.answered = true;
+  render();
+}
+
+function confirmAnswer(){
+  if(!state.answered || state.confirmedAnswer) return;
   const q = state.roundQuestions[state.currentIndex];
-  if(q && letter === q.correct) state.score++;
+  if(!q) return;
+  state.confirmedAnswer = true;
+  if(state.selectedOption === q.correct) state.score++;
   render();
 }
 
 async function nextQuestion(){
-  if(!state.answered) return;
+  if(!state.confirmedAnswer) return;
 
   if(state.currentIndex < state.roundQuestions.length - 1){
     state.currentIndex++;
     state.answered = false;
     state.selectedOption = null;
+    state.confirmedAnswer = false;
     render();
     return;
   }
@@ -1080,6 +829,7 @@ function goHome(){
     currentIndex: 0,
     answered: false,
     selectedOption: null,
+    confirmedAnswer: false,
     score: 0,
     isDaily: false,
     dailyMessage: null
@@ -1182,7 +932,7 @@ function renderHome(){
 
   main.innerHTML = `
     ${renderDailyCard()}
-    <p class="intro-note">Cada simulado sorteia 10 questões do banco daquela matéria. Ao escolher uma alternativa, o site mostra na hora por que ela está certa ou errada — dá pra refazer o mesmo simulado quantas vezes quiser, sempre com uma combinação diferente.</p>
+    <p class="intro-note">Cada simulado sorteia 10 questões do banco daquela matéria. Escolha uma alternativa e confirme quando tiver certeza. Só depois da confirmação o site revela o resultado e a explicação.</p>
     <div class="subject-grid">${rows}</div>
   `;
 
@@ -1202,15 +952,17 @@ function renderQuizLike(isDaily){
 
   let optionsHtml = letters.map(letter => {
     let cls = "option";
-    if(state.answered){
+    if(state.confirmedAnswer){
       cls += " locked";
       if(letter === q.correct) cls += " correct";
       else if(letter === state.selectedOption) cls += " incorrect";
       else cls += " dim";
+    } else if(letter === state.selectedOption){
+      cls += " selected";
     }
 
     return `
-      <button type="button" class="${cls}" data-option="${letter}" ${state.answered ? "disabled" : ""}>
+      <button type="button" class="${cls}" data-option="${letter}" ${state.confirmedAnswer ? "disabled" : ""}>
         <span class="letter">${letter}</span>
         <span>${esc(q.options[letter])}</span>
       </button>
@@ -1218,7 +970,7 @@ function renderQuizLike(isDaily){
   }).join("");
 
   let explanationHtml = "";
-  if(state.answered){
+  if(state.confirmedAnswer){
     const isRight = state.selectedOption === q.correct;
     if(isRight){
       explanationHtml = `<div class="explanation right"><span class="head">Por que está certa</span>${esc(q.explanations[q.correct])}</div>`;
@@ -1232,6 +984,13 @@ function renderQuizLike(isDaily){
 
   const isLast = state.currentIndex === total - 1;
 
+  const confirmHtml = state.selectedOption && !state.confirmedAnswer ? `
+    <div class="answer-confirm">
+      <p>Você marcou <strong>${esc(state.selectedOption)}</strong>. Quer confirmar sua resposta?</p>
+      <button type="button" class="primary ${isDaily ? "rose" : ""}" id="confirm-answer">Confirmar resposta &rarr;</button>
+    </div>
+  ` : "";
+
   main.innerHTML = `
     <div class="progress-row">
       <span class="progress-label">${state.currentIndex + 1} / ${total}</span>
@@ -1243,8 +1002,9 @@ function renderQuizLike(isDaily){
       <p class="statement">${esc(q.statement)}</p>
     </div>
     <div class="options">${optionsHtml}</div>
+    ${confirmHtml}
     ${explanationHtml}
-    ${state.answered ? `
+    ${state.confirmedAnswer ? `
       <div class="next-row">
         <button type="button" class="primary ${isDaily ? "rose" : ""}" id="next-question">${isLast ? "Ver resultado final" : "Próxima questão"} &rarr;</button>
       </div>
@@ -1333,6 +1093,10 @@ function render(){
 /* Se a sessão expirar, recarrega a identidade antes da próxima operação. */
 sb.auth.onAuthStateChange((_event, session) => {
   currentUser = session?.user || null;
+});
+
+document.getElementById("main").addEventListener("click", (event) => {
+  if(event.target.closest("#confirm-answer")) confirmAnswer();
 });
 
 loadEverything();
