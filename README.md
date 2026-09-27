@@ -2,7 +2,7 @@
 
 > Um espaço de estudos feito especialmente para a Luiza. ❤️
 
-Plataforma educacional em português do Brasil com atividades de **Direito** e **Tecnologia**. O site reúne questões, simulados e desafios para praticar conteúdos no próprio ritmo.
+Plataforma educacional em português do Brasil com atividades de **Direito**, **Tecnologia** e **Inteligência Artificial**. O site reúne questões, simulados e desafios para praticar conteúdos no próprio ritmo.
 
 - **Site:** [luiza.eduardoferreira.space](https://luiza.eduardoferreira.space/)
 - **Desenvolvimento:** [Eduardo Ferreira](https://eduardoferreira.space/)
@@ -14,20 +14,23 @@ Plataforma educacional em português do Brasil com atividades de **Direito** e *
 | --- | --- |
 | `/` | Apresentação da plataforma, escolha da área, informações e contato |
 | `/direito/` | Questões por matéria, simulados e desafio diário de Direito |
-| `/tecnologia/` | Questões por tema, tópicos de Inteligência Artificial dentro de Tecnologia e desafio diário |
+| `/tecnologia/` | Questões por tema e desafio diário de Tecnologia |
+| `/inteligencia-artificial/` | Questões por tópico e desafio diário de Inteligência Artificial |
 
 ### Tecnologia
 
 As questões são agrupadas por assunto usando o valor `subject`. As chaves recomendadas são `redes`, `infraestrutura`, `seguranca`, `sistemas_operacionais`, `linux`, `windows`, `virtualizacao`, `cloud`, `banco_de_dados`, `programacao`, `devops` e `hardware`. A interface também tenta reconhecer os nomes exibidos desses temas.
 
-A matéria **Inteligência Artificial** pertence à área Tecnologia e usa as relações `subjects` e `topics` do Supabase (`questions.subject_id` e `questions.topic_id`). Seus tópicos e questões são carregados do banco; tópicos sem questões mostram um estado vazio próprio até receberem conteúdo.
+### Inteligência Artificial
 
-Uma sessão de tema sorteia até 10 questões. O desafio diário precisa de pelo menos 5 questões com dificuldade `dificil` para ser iniciado. O resultado diário de Tecnologia é guardado no navegador e vale naquele dispositivo; o desafio diário de Direito é registrado no Supabase e limitado por usuário e data.
+A área de **Inteligência Artificial** usa a matéria cadastrada no Supabase e as relações `subjects` e `topics` (`questions.subject_id` e `questions.topic_id`). Seus tópicos e questões são carregados do banco; tópicos sem questões mostram um estado vazio próprio até receberem conteúdo.
+
+Uma sessão de tema sorteia até 10 questões. Os desafios diários de Tecnologia e Inteligência Artificial precisam de pelo menos 5 questões difíceis e salvam o resultado no navegador, naquele dispositivo. O desafio diário de Direito é registrado no Supabase e limitado por usuário e data.
 
 ## Funcionalidades
 
 - Simulados com seleção aleatória de questões e explicações das alternativas.
-- Áreas separadas para Direito e Tecnologia.
+- Áreas separadas para Direito, Tecnologia e Inteligência Artificial.
 - Desafios diários com cinco questões difíceis.
 - Temas claro e escuro, com preferência salva entre as páginas.
 - Layout adaptado para celular e desktop.
