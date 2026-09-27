@@ -131,6 +131,11 @@ function todayStr(){
   return `${y}-${m}-${day}`;
 }
 
+function dailyStorageKey(){
+  const prefix = BANK_AREA_KEY === "technology" ? "luiza-tech-daily" : `luiza-${BANK_AREA_KEY}-daily`;
+  return `${prefix}-${todayStr()}`;
+}
+
 function pickRandomQuestions(subjectKey, count){
   const bank = BANK_BY_SUBJECT[subjectKey] || [];
   const n = Math.min(count, bank.length);
@@ -138,6 +143,7 @@ function pickRandomQuestions(subjectKey, count){
 }
 
 async function fetchQuestionRows(){
+  if(BANK_AREA_KEY === "ai") return [];
   const cacheKey = `luiza-question-bank-v2-${BANK_AREA_KEY}`;
   try {
     const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
@@ -246,7 +252,10 @@ async function loadEverything(){
     await ensureAnonymousSession();
 
     /* Mantém o carregamento legado e adiciona IA pela relação matéria/tópico. */
-    const [legacyQuestions, aiContent] = await Promise.all([fetchQuestionRows(), fetchAIContent()]);
+    const [legacyQuestions, aiContent] = await Promise.all([
+      fetchQuestionRows(),
+      BANK_AREA_KEY === "ai" ? fetchAIContent() : Promise.resolve({ subject: null, topics: [], questions: [] })
+    ]);
     AI_SUBJECT = aiContent.subject;
     AI_TOPICS = aiContent.topics;
     const rowsById = new Map();
@@ -304,14 +313,14 @@ async function loadEverything(){
       dailyStatusToday = dailyRow || null;
     } else {
       try {
-        const savedDaily = JSON.parse(localStorage.getItem(`luiza-tech-daily-${todayStr()}`) || "null");
+        const savedDaily = JSON.parse(localStorage.getItem(dailyStorageKey()) || "null");
         dailyStatusToday = savedDaily?.completed ? savedDaily : null;
       } catch(_){
         dailyStatusToday = null;
       }
     }
 
-    state.screen = "home";
+    state.screen = BANK_AREA_KEY === "ai" ? "ai-topics" : "home";
     render();
   } catch(err){
     console.error("Falha ao carregar o aplicativo:", err);
@@ -449,7 +458,7 @@ async function nextQuestion(){
     }
     state.dailyMessage = message;
 
-    if(AREA === "technology"){
+    if(AREA !== "law"){
       dailyStatusToday = {
         attempt_date: todayStr(),
         score: state.score,
@@ -457,7 +466,7 @@ async function nextQuestion(){
         message_shown: message
       };
       try {
-        localStorage.setItem(`luiza-tech-daily-${todayStr()}`, JSON.stringify(dailyStatusToday));
+        localStorage.setItem(dailyStorageKey(), JSON.stringify(dailyStatusToday));
       } catch(err){
         console.warn("Não foi possível salvar o desafio diário neste navegador:", err);
       }
@@ -532,7 +541,9 @@ function renderHeader(){
 
   let backHtml = "";
   if(state.screen === "ai-topics"){
-    backHtml = `<button type="button" class="back-link" data-action="home">&larr; voltar à Tecnologia</button>`;
+    backHtml = BANK_AREA_KEY === "ai"
+      ? `<a class="back-link" href="/">&larr; voltar às áreas</a>`
+      : `<button type="button" class="back-link" data-action="home">&larr; voltar à Tecnologia</button>`;
   } else if(state.subjectKey === "inteligencia_artificial" && state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
     backHtml = `<button type="button" class="back-link" data-action="ai-topics">&larr; voltar aos tópicos de IA</button>`;
   } else if(state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
@@ -540,9 +551,9 @@ function renderHeader(){
   }
 
   if(state.screen === "loading"){
-    inner.innerHTML = `<p class="kicker">ESTUDOS EM TECNOLOGIA</p><h1>Carregando os conteúdos…</h1>`;
+    inner.innerHTML = `<p class="kicker">${BANK_AREA_KEY === "ai" ? "ESTUDOS EM INTELIGÊNCIA ARTIFICIAL" : "ESTUDOS EM TECNOLOGIA"}</p><h1>Carregando os conteúdos…</h1>`;
   } else if(state.screen === "error"){
-    inner.innerHTML = `<p class="kicker">ESTUDOS EM TECNOLOGIA</p><h1>Não consegui carregar</h1>`;
+    inner.innerHTML = `<p class="kicker">${BANK_AREA_KEY === "ai" ? "ESTUDOS EM INTELIGÊNCIA ARTIFICIAL" : "ESTUDOS EM TECNOLOGIA"}</p><h1>Não consegui carregar</h1>`;
   } else if(state.screen === "home"){
     inner.innerHTML = `
       <p class="kicker">ESTUDOS EM TECNOLOGIA</p>
@@ -556,7 +567,7 @@ function renderHeader(){
     const title = state.topicId ? AI_TOPICS.find(topic => Number(topic.id) === Number(state.topicId))?.name : SUBJECT_LABELS[state.subjectKey];
     inner.innerHTML = `${backHtml}<p class="kicker">${esc((title || SUBJECT_LABELS[state.subjectKey]).toUpperCase())}</p><h1>Resultado do simulado</h1>`;
   } else if(state.screen === "ai-topics"){
-    inner.innerHTML = `${backHtml}<p class="kicker">ESTUDOS EM TECNOLOGIA</p><h1>Inteligência Artificial</h1><p class="sub">Explore os tópicos e pratique com questões explicadas. Matemática para IA reúne fundamentos e subtópicos relacionados.</p>`;
+    inner.innerHTML = `${backHtml}<p class="kicker">ÁREA DE ESTUDO</p><h1>Inteligência Artificial</h1><p class="sub">Explore os tópicos e pratique com questões explicadas. Matemática para IA reúne fundamentos e subtópicos relacionados.</p>`;
   } else if(state.screen === "topic-empty"){
     const topic = AI_TOPICS.find(item => Number(item.id) === Number(state.topicId));
     inner.innerHTML = `${backHtml}<p class="kicker">INTELIGÊNCIA ARTIFICIAL</p><h1>${esc(topic?.name || "Tópico")}</h1>`;
@@ -605,7 +616,7 @@ function renderDailyCard(){
   return `
     <div class="daily-card">
       <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
-      <h2>5 questões difíceis de Tecnologia</h2>
+      <h2>5 questões difíceis de ${AREA === "ai" ? "Inteligência Artificial" : "Tecnologia"}</h2>
       <p class="desc">Questões sorteadas entre os temas da área. Confira cada explicação e acompanhe o resultado da rodada.</p>
       ${availableDailyQuestions < total ? `<p class="daily-availability" id="daily-availability">O desafio será liberado quando houver pelo menos 5 questões difíceis cadastradas. Disponíveis: ${availableDailyQuestions}/${total}.</p>` : ""}
       <button type="button" class="primary rose" data-action="daily" ${availableDailyQuestions < total ? 'disabled aria-describedby="daily-availability"' : ""}>Começar desafio de hoje &rarr;</button>
@@ -615,18 +626,16 @@ function renderDailyCard(){
 
 function renderHome(){
   const main = document.getElementById("main");
-  const keys = Object.keys(SUBJECT_LABELS);
+  const keys = Object.keys(SUBJECT_LABELS).filter(key => key !== "inteligencia_artificial");
   let rows = keys.map((key, i) => {
     const label = SUBJECT_LABELS[key];
     const count = (BANK_BY_SUBJECT[key] || []).length;
-    const isAI = key === "inteligencia_artificial";
-    if(isAI && !AI_SUBJECT) return "";
     const num = String(i + 1).padStart(2, "0");
     return `
-      <button type="button" class="subject-row ${isAI ? "subject-row-ai" : ""}" data-subject="${esc(key)}" ${count || isAI ? "" : "disabled"}>
+      <button type="button" class="subject-row" data-subject="${esc(key)}" ${count ? "" : "disabled"}>
         <span class="num">${num}</span>
         <span class="title">${esc(label)}</span>
-        <span class="meta">${isAI ? `${AI_TOPICS.length} tópicos` : count ? `${count} no banco` : "0 questões"}</span>
+        <span class="meta">${count ? `${count} no banco` : "0 questões"}</span>
         <span class="arrow">&rarr;</span>
       </button>
     `;
@@ -671,7 +680,7 @@ function renderAITopics(){
     return `<button type="button" class="ai-topic-row" data-topic="${Number(topic.id)}"><span class="num">${String(index).padStart(2,"0")}</span><span class="title">${esc(topic.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
   }).join("");
   const empty = !AI_TOPICS.length ? `<section class="empty-state" role="status"><h2>Nenhum tópico cadastrado</h2><p>Os tópicos de Inteligência Artificial ainda não estão disponíveis no banco de estudos.</p></section>` : "";
-  main.innerHTML = `<p class="intro-note">Escolha um tópico para iniciar uma sessão de até 10 questões. Cada resposta inclui explicações para ajudar na revisão.</p>${empty}<div class="ai-topic-list">${rows}</div>`;
+  main.innerHTML = `${BANK_AREA_KEY === "ai" ? renderDailyCard() : ""}<p class="intro-note">Escolha um tópico para iniciar uma sessão de até 10 questões. Cada resposta inclui explicações para ajudar na revisão.</p>${empty}<div class="ai-topic-list">${rows}</div>`;
   main.querySelectorAll("[data-topic]").forEach(button => button.addEventListener("click", () => startTopicQuiz(button.dataset.topic)));
 }
 
@@ -764,7 +773,7 @@ function renderResult(){
   const pct = total ? Math.round((state.score / total) * 100) : 0;
 
   let msg;
-  if(AREA === "technology"){
+  if(AREA !== "law"){
     if(pct >= 80) msg = "Ótimo resultado. Você está consolidando bem esse conteúdo técnico.";
     else if(pct >= 60) msg = "Boa rodada. Revise os pontos que deram dúvida e tente mais uma vez.";
     else msg = "Cada erro aponta o que vale revisar. Continue praticando; conhecimento técnico vem com prática.";
@@ -805,7 +814,7 @@ function renderDailyResult(){
     </div>
   `;
 
-  document.getElementById("back-home").addEventListener("click", goHome);
+  document.getElementById("back-home").addEventListener("click", BANK_AREA_KEY === "ai" ? goAiTopics : goHome);
 }
 
 function bindStaticActions(){
