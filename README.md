@@ -78,6 +78,8 @@ A tabela `questions` contém enunciados, alternativas, respostas, explicações 
 
 O arquivo [`vercel.json`](./vercel.json) configura cabeçalhos HTTP de segurança para as páginas publicadas. A auditoria somente de leitura [`supabase/security_audit.sql`](./supabase/security_audit.sql) lista o estado de RLS, políticas, privilégios, ACLs e definições das funções no schema `public`; revise os resultados antes de mudar regras no banco. A auditoria de conteúdo [`supabase/content_audit.sql`](./supabase/content_audit.sql) procura duplicidades, campos incompletos, distribuição de dificuldade e disponibilidade dos desafios, sem alterar registros. A chave publishable do Supabase aparece no JavaScript do navegador por projeto: ela não é uma senha e só é segura com RLS e privilégios mínimos configurados corretamente. Nunca coloque chaves `secret` ou `service_role` no site.
 
+O gabarito é consultado somente pelo endpoint server-side [`api/questions/answer.js`](./api/questions/answer.js), depois da confirmação. Antes disso, o frontend carrega apenas enunciados e alternativas e persiste IDs/resultados mínimos. Para ativar em um deploy novo, configure `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` nas variáveis de ambiente do Vercel e execute [`supabase/question-answer-security.sql`](./supabase/question-answer-security.sql) no Supabase. Consulte [`docs/security-question-answer.md`](./docs/security-question-answer.md) para o fluxo e as verificações.
+
 O projeto é educacional e independente. Não possui vínculo oficial com a OAB ou com a FGV. As questões voltadas ao Direito são apresentadas como prática para estudos, não como orientação jurídica.
 
 ## Desenvolvimento
