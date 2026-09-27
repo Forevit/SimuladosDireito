@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:; upgrade-insecure-requests;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp' 'sha256-eX5Ki3BTiI9zwDY0bqJhIYM9P8U89BVRx0+gV0P6pqc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:; upgrade-insecure-requests;">
 <meta name="description" content="Pratique Direito para a OAB com questões por matéria, simulados e explicações comentadas na plataforma Luiza.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#090b10">
@@ -28,6 +28,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/theme.js"></script>
+<script src="/study-history.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Questões de Direito e preparação para OAB | Luiza","url":"https://luiza.eduardoferreira.space/direito/","inLanguage":"pt-BR","isPartOf":{"@type":"WebSite","name":"Luiza — Plataforma de Estudos","url":"https://luiza.eduardoferreira.space/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://luiza.eduardoferreira.space/"},{"@type":"ListItem","position":2,"name":"Direito","item":"https://luiza.eduardoferreira.space/direito/"}]}}</script>
 <style>
   :root{
     color-scheme:dark;
@@ -728,6 +730,47 @@
     .subject-row .meta{font-size:13px;}
     .question-card .statement{font-size:20px;}
   }
+  .continue-card{display:flex;align-items:center;justify-content:space-between;gap:22px;margin:0 0 26px;padding:20px 22px;border:1px solid rgba(208,173,91,.28);border-radius:12px;background:linear-gradient(120deg,#171f2d,#111721);color:#edf1f7}
+  .continue-card h2{margin:2px 0 5px;font:600 21px 'Space Grotesk',sans-serif;color:#f1f4f9}
+  .continue-card p{margin:0;color:#bac5d5;font-size:15px;line-height:1.5}
+  .continue-card .result-label{color:#e3c47b}.continue-card .continue-percent{margin-top:5px;font-weight:700;color:#e3c47b}
+  .result-counts{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:16px 0;color:#d4deea;font-size:16px}
+  .result-counts span{padding:8px 12px;border:1px solid rgba(186,201,223,.15);border-radius:8px;background:rgba(255,255,255,.035)}
+  .difficulty-stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 20px}
+  .difficulty-stat{display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid rgba(186,201,223,.15);border-radius:8px;color:#cbd5e2;font-size:14px}
+  .difficulty-stat strong{color:#f1f4f9;font-variant-numeric:tabular-nums}
+  .answer-feedback{margin:16px 0 8px;padding:13px 15px;border-radius:8px;font-size:18px;font-weight:700}
+  .answer-feedback.right{border:1px solid #3c9e75;background:#14271f;color:#c3f0d7}
+  .answer-feedback.wrong{border:1px solid #a5564e;background:#301e1d;color:#f4d1ca}
+  .explanation-list{margin-top:18px}
+  .explanation-list h2{margin:0 0 10px;color:#edf1f7;font:600 19px 'Space Grotesk',sans-serif}
+  .explanation-list .explanation{margin-top:8px;font-size:16px}
+  [data-theme="light"] .continue-card{border-color:rgba(34,52,80,.15);background:linear-gradient(120deg,#fff,#f4f6fa);color:#172033}
+  [data-theme="light"] .continue-card h2{color:#172033}
+  [data-theme="light"] .continue-card p{color:#46536a}[data-theme="light"] .continue-card .continue-percent{color:#78580f}
+  [data-theme="light"] .continue-card .result-label{color:#78580f}
+  [data-theme="light"] .result-counts{color:#26344a}
+  [data-theme="light"] .result-counts span,[data-theme="light"] .difficulty-stat{border-color:rgba(34,52,80,.15);background:#f7f9fc}
+  [data-theme="light"] .difficulty-stat{color:#46536a}
+  [data-theme="light"] .difficulty-stat strong{color:#172033}
+  [data-theme="light"] .answer-feedback.right{border-color:#17724b;background:#e3f3ea;color:#173d2d}
+  [data-theme="light"] .answer-feedback.wrong{border-color:#a5322a;background:#fce9e6;color:#5c211d}
+  [data-theme="light"] .explanation-list h2{color:#172033}
+  @media(max-width:600px){.continue-card{align-items:stretch;flex-direction:column;gap:14px;padding:18px}.continue-card .primary{width:100%;justify-content:center}.result-counts{font-size:15px}.difficulty-stats{display:grid;grid-template-columns:1fr}.difficulty-stat{justify-content:space-between}.answer-feedback{font-size:17px}.explanation-list .explanation{font-size:16px}}
+  .recommend-card{display:flex;align-items:center;justify-content:space-between;gap:22px;margin:0 0 24px;padding:20px 22px;border:1px solid rgba(125,205,165,.25);border-radius:12px;background:linear-gradient(120deg,#14231f,#111721);color:#edf1f7}
+  .recommend-card h2{margin:2px 0 5px;font:600 21px 'Space Grotesk',sans-serif;color:#f1f4f9}
+  .recommend-card p{margin:0;color:#bac5d5;font-size:15px;line-height:1.5}
+  .recommend-card .result-label{margin-bottom:4px;color:#91dfb4}
+  [data-theme="light"] .recommend-card{border-color:rgba(23,114,75,.2);background:linear-gradient(120deg,#f0f8f3,#fff);color:#172033}
+  [data-theme="light"] .recommend-card h2{color:#172033}
+  [data-theme="light"] .recommend-card p{color:#46536a}
+  [data-theme="light"] .recommend-card .result-label{color:#17724b}
+  @media(max-width:600px){.recommend-card{align-items:stretch;flex-direction:column;gap:14px;padding:18px}.recommend-card .primary{width:100%;justify-content:center}}
+  .theme-toggle{width:44px;height:44px}
+  .back-link{min-height:44px}
+  .option{min-height:48px}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  .question-card h2.statement{font-weight:400}
 </style>
 </head>
 <body>
