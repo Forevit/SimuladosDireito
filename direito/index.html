@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://cdn.jsdelivr.net 'nonce-S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:;">
+<meta name="description" content="Pratique para a OAB com simulados jurídicos por matéria, questões explicadas e desafio diário na plataforma Luiza.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#090b10">
+<link rel="canonical" href="https://luiza.eduardoferreira.space/direito/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Estudos em Direito — Luiza">
+<meta property="og:description" content="Pratique Direito com simulados por matéria, questões explicadas e desafio diário.">
+<meta property="og:url" content="https://luiza.eduardoferreira.space/direito/">
+<meta property="og:site_name" content="Luiza — Plataforma de Estudos">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary">
+<title>Simulados — Luiza</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="/theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    color-scheme:dark;
+    --navy: #16233d;
+    --navy-deep: #0e1728;
+    --parchment: #f4efe4;
+    --parchment-dark: #e8e0cf;
+    --gold: #b8912f;
+    --gold-light: #d9b968;
+    --ink: #1c1c1c;
+    --ink-soft: #4a4a4a;
+    --right: #2f6b4f;
+    --right-bg: #e3ede6;
+    --wrong: #a53d30;
+    --wrong-bg: #f3e4e0;
+    --rose: #a6455a;
+    --rose-bg: #f5e6e9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background: var(--navy-deep);
+    color: var(--ink);
+    min-height:100vh;
+  }
+  .app{
+    max-width: 920px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--parchment);
+    box-shadow: 0 0 60px rgba(0,0,0,0.4);
+    display:flex;
+    flex-direction:column;
+  }
+
+  header.top{
+    background: var(--navy);
+    color: var(--parchment);
+    padding: 28px 32px 24px;
+    border-bottom: 4px solid var(--gold);
+    position:relative;
+  }
+  header.top .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--gold-light);
+    margin: 0 0 6px;
+  }
+  header.top h1{
+    font-family:'Lora', serif;
+    font-weight:600;
+    font-size: 30px;
+    margin: 0;
+    line-height:1.15;
+  }
+  header.top .sub{
+    margin: 8px 0 0;
+    font-size: 14.5px;
+    color: #cdd6e4;
+    max-width: 55ch;
+    line-height:1.5;
+  }
+  .back-link{
+    background:none;
+    border:none;
+    color: var(--gold-light);
+    font-family:'Inter',sans-serif;
+    font-size: 13.5px;
+    cursor:pointer;
+    padding: 0;
+    margin-bottom: 14px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .back-link:hover{ color: var(--parchment); }
+
+  main{
+    flex:1;
+    padding: 36px 32px 48px;
+  }
+
+  /* ---------- Loading / error ---------- */
+  .center-note{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height:1.6;
+  }
+  .center-note .retry{
+    margin-top: 18px;
+  }
+
+  /* ---------- Daily card ---------- */
+  .daily-card{
+    background: var(--navy);
+    color: var(--parchment);
+    padding: 24px 26px;
+    margin-bottom: 30px;
+    border-left: 4px solid var(--gold-light);
+    position: relative;
+  }
+  .daily-card .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--gold-light);
+    margin: 0 0 8px;
+  }
+  .daily-card h2{
+    font-family:'Lora', serif;
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+  .daily-card p.desc{
+    font-size: 14px;
+    color: #cdd6e4;
+    margin: 0 0 18px;
+    max-width: 50ch;
+    line-height:1.55;
+  }
+  .daily-card .done-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .daily-card .done-score{
+    font-family:'Lora', serif;
+    font-size: 26px;
+    font-weight:700;
+  }
+  .daily-card .done-msg{
+    background: rgba(217,185,104,0.15);
+    border-left: 3px solid var(--gold-light);
+    padding: 12px 16px;
+    font-size: 14.5px;
+    line-height:1.5;
+    margin-top: 14px;
+  }
+
+  /* ---------- Subject picker (home) ---------- */
+  .subject-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 1px solid var(--parchment-dark);
+  }
+  .subject-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 16px;
+    padding: 20px 4px;
+    border-bottom: 1px solid var(--parchment-dark);
+    background: none;
+    border-left:none; border-right:none; border-top:none;
+    width:100%;
+    text-align:left;
+    cursor:pointer;
+    font-family:inherit;
+    color: inherit;
+    transition: padding-left 0.15s ease;
+  }
+  .subject-row:hover{
+    padding-left: 12px;
+    background: rgba(184,145,47,0.07);
+  }
+  .subject-row .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    width: 34px;
+    flex-shrink:0;
+  }
+  .subject-row .title{
+    font-family:'Lora', serif;
+    font-size: 19px;
+    font-weight:600;
+    flex:1;
+  }
+  .subject-row .meta{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    flex-shrink:0;
+  }
+  .subject-row .arrow{
+    color: var(--gold);
+    font-size: 18px;
+    flex-shrink:0;
+  }
+
+  .intro-note{
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height:1.6;
+    margin: 0 0 26px;
+    max-width: 62ch;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom: 26px;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background: var(--parchment-dark);
+    border-radius: 3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background: var(--gold);
+    transition: width 0.3s ease;
+  }
+  .progress-fill.rose{ background: var(--rose); }
+  .progress-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .question-card{
+    background:#fff;
+    border: 1px solid var(--parchment-dark);
+    border-left: 4px solid var(--gold);
+    padding: 26px 28px;
+    margin-bottom: 22px;
+  }
+  .question-card.daily{ border-left-color: var(--rose); }
+  .question-card .art-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    margin: 0 0 10px;
+    display:flex;
+    gap: 10px;
+    align-items:center;
+  }
+  .question-card.daily .art-label{ color: var(--rose); }
+  .question-card .subject-badge{
+    background: var(--parchment-dark);
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .question-card .statement{
+    font-family:'Lora', serif;
+    font-size: 18.5px;
+    line-height:1.55;
+    margin:0;
+    color: var(--ink);
+  }
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap: 12px;
+  }
+  .option{
+    display:flex;
+    gap: 14px;
+    align-items:flex-start;
+    padding: 16px 18px;
+    background:#fff;
+    border: 1px solid var(--parchment-dark);
+    cursor:pointer;
+    text-align:left;
+    font-family:'Inter',sans-serif;
+    font-size: 15px;
+    line-height:1.5;
+    color: var(--ink);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .option:hover:not(.locked){
+    border-color: var(--gold);
+    background: #fffdf6;
+  }
+  .option .letter{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    color: var(--gold);
+    flex-shrink:0;
+    width: 18px;
+  }
+  .option.locked{ cursor:default; }
+  .option.selected{
+    border-color: var(--gold);
+    background: #fffdf6;
+    box-shadow: inset 3px 0 0 var(--gold);
+  }
+  .option.selected .letter{ color: var(--gold); }
+  .option.correct{
+    background: var(--right-bg);
+    border-color: var(--right);
+  }
+  .option.correct .letter{ color: var(--right); }
+  .option.incorrect{
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+  }
+  .option.incorrect .letter{ color: var(--wrong); }
+  .option.dim{ opacity: 0.55; }
+
+  .explanation{
+    margin-top: 10px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height:1.6;
+    border-left: 3px solid;
+  }
+  .explanation.right{
+    background: var(--right-bg);
+    border-color: var(--right);
+    color: #1f4635;
+  }
+  .explanation.wrong{
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+    color: #6d2a20;
+  }
+  .explanation .head{
+    font-weight:600;
+    display:block;
+    margin-bottom: 4px;
+  }
+
+  .next-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top: 22px;
+  }
+  button.primary{
+    background: var(--navy);
+    color: var(--parchment);
+    border:none;
+    padding: 13px 26px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 14.5px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  button.primary:hover{ background: var(--navy-deep); }
+  button.primary.rose{ background: var(--rose); }
+  button.primary.rose:hover{ background: #8a3749; }
+  button.ghost{
+    background:none;
+    border: 1px solid var(--navy);
+    color: var(--navy);
+    padding: 13px 26px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 14.5px;
+    cursor:pointer;
+  }
+  button.ghost:hover{ background: rgba(22,35,61,0.06); }
+  button.primary:disabled{ opacity:0.5; cursor:default; }
+
+  /* ---------- Result screen ---------- */
+  .result-wrap{
+    text-align:center;
+    padding: 20px 0 10px;
+  }
+  .result-score{
+    font-family:'Lora', serif;
+    font-size: 64px;
+    font-weight:700;
+    color: var(--navy);
+    margin: 10px 0 4px;
+    line-height:1;
+  }
+  .result-score span{
+    font-size: 26px;
+    color: var(--ink-soft);
+    font-weight:500;
+  }
+  .result-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing:0.03em;
+  }
+  .result-msg{
+    font-size: 15px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 18px auto 30px;
+    line-height:1.6;
+  }
+  .result-actions{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .cute-message{
+    background: var(--rose-bg);
+    border-left: 4px solid var(--rose);
+    padding: 22px 24px;
+    max-width: 48ch;
+    margin: 8px auto 28px;
+    font-family:'Lora', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: #6d2436;
+    line-height:1.6;
+    text-align:left;
+  }
+
+  /* Mantém o quiz no mesmo tema escuro da nova Home. */
+  :root{
+    --navy:#121a28;
+    --navy-deep:#090b10;
+    --parchment:#10141d;
+    --parchment-dark:#252e3d;
+    --gold:#d0ad5b;
+    --gold-light:#e3c47b;
+    --ink:#edf1f7;
+    --ink-soft:#a1acbd;
+    --right:#69d7a4;
+    --right-bg:#14271f;
+    --wrong:#e18478;
+    --wrong-bg:#301e1d;
+    --rose:#c2768a;
+    --rose-bg:#2d1d25;
+  }
+  [data-theme="dark"] header.top{color:#f1f4f9;}
+  [data-theme="dark"] header.top h1{color:#f1f4f9;}
+  [data-theme="dark"] header.top .kicker{color:#f0d58f;}
+  [data-theme="dark"] header.top .sub{color:#d4deea;}
+  [data-theme="dark"] .daily-card{color:#f1f4f9;}
+  [data-theme="dark"] .daily-card h2{color:#f1f4f9;}
+  [data-theme="dark"] .subject-row:disabled{opacity:1;color:#cbd5e2;}
+  .app{background:var(--parchment);box-shadow:0 0 70px rgba(0,0,0,.28);}
+  header.top{background:#101827;border-bottom-color:var(--gold);}
+  .daily-card{background:#121a28;border:1px solid rgba(227,196,123,.16);border-left:4px solid var(--gold-light);border-radius:10px;}
+  .subject-grid{border-top-color:var(--parchment-dark);}
+  .subject-row{border-bottom-color:var(--parchment-dark);border-radius:7px;}
+  .subject-row:hover{background:rgba(208,173,91,.07);}
+  .question-card,.option{background:#151b26;border-color:#2a3342;border-radius:9px;}
+  .question-card{border-left-color:var(--gold);}
+  .question-card .subject-badge{background:#232c3a;color:#c0cad8;border-radius:5px;}
+  .option:hover:not(.locked),.option.selected{background:#202330;border-color:var(--gold);}
+  .option.correct{background:var(--right-bg);border-color:var(--right);}
+  .option.incorrect{background:var(--wrong-bg);border-color:var(--wrong);}
+  .explanation.right{color:#c3f0d7;}
+  .explanation.wrong{color:#f2c9c2;}
+  button.primary{border-radius:8px;background:#263852;color:#f1f4f9;}
+  button.primary:hover{background:#314966;}
+  button.primary.rose{background:#603543;}
+  button.primary.rose:hover{background:#754151;}
+  button.ghost{border-color:#3a4658;border-radius:8px;color:#d6deea;}
+  button.ghost:hover{background:rgba(255,255,255,.05);}
+  .result-score{color:var(--gold-light);}
+  .result-score span{color:var(--ink-soft);}
+  .cute-message{background:var(--rose-bg);border-radius:9px;color:#f1c6d1;}
+  :focus-visible{outline:2px solid #d0ad5b;outline-offset:3px;}
+  .app{width:100%;max-width:none;min-height:100vh;margin:0;background:transparent;box-shadow:none;}
+  header.top{padding:0 0 30px;background:linear-gradient(180deg,#101722 0%,#0b0f16 100%);border-bottom:1px solid rgba(186,201,223,.13);}
+  .top-nav,.header-inner,main#main,.app-footer{width:min(1120px,calc(100% - 48px));margin-inline:auto;}
+  .skip-link{position:absolute;left:16px;top:-60px;z-index:5;padding:10px 14px;border-radius:7px;background:#d0ad5b;color:#14120c;font-size:12px;font-weight:700;}
+  .skip-link:focus{top:12px;}
+  .top-nav{min-height:69px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid rgba(186,201,223,.1);}
+  .nav-actions{display:flex;align-items:center;gap:13px;}
+  .brand{display:inline-flex;align-items:center;gap:10px;color:#f1f4f9;text-decoration:none;font:600 15px/1 'Space Grotesk',sans-serif;}
+  .brand-mark{width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(208,173,91,.35);border-radius:10px;background:rgba(208,173,91,.08);color:#e3c47b;font-size:16px;}
+  .brand-subtitle{margin-left:2px;color:#788497;font:9px 'IBM Plex Mono',monospace;letter-spacing:.08em;}
+  .home-link{color:#a1acbd;text-decoration:none;font-size:11px;transition:color .2s;}
+  .home-link:hover{color:#f1f4f9;}
+  .header-inner{padding-top:35px;}
+  header.top .kicker{color:#e3c47b;font-size:10px;letter-spacing:.12em;}
+  header.top h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,4vw,42px);letter-spacing:-.045em;}
+  header.top .sub{max-width:66ch;color:#a1acbd;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.7;}
+  .back-link{color:#e3c47b;font-family:'DM Sans',sans-serif;font-size:11px;}
+  .back-link:hover{color:#f1f4f9;}
+  main#main{padding:35px 0 61px;}
+  .center-note{color:#a1acbd;}
+  .center-note .retry{margin-inline:auto;}
+  .daily-card{position:relative;overflow:hidden;padding:25px 27px;margin-bottom:29px;border:1px solid rgba(227,196,123,.18);border-left:3px solid #e3c47b;border-radius:13px;background:linear-gradient(120deg,#161d29,#111721);}
+  .daily-card::after{position:absolute;top:-120px;right:-60px;width:290px;height:290px;border-radius:50%;background:radial-gradient(circle,rgba(208,173,91,.1),transparent 70%);content:"";pointer-events:none;}
+  .daily-card .kicker{color:#e3c47b;font-size:10px;letter-spacing:.12em;}
+  .daily-card h2{font-family:'Space Grotesk',sans-serif;font-size:21px;}
+  .daily-card p.desc{color:#a1acbd;font-size:12px;}
+  .daily-card .done-score{font-family:'Space Grotesk',sans-serif;color:#e3c47b;}
+  .daily-card .done-msg{position:relative;z-index:1;border-radius:8px;background:rgba(227,196,123,.08);color:#e6d6af;font-size:12px;}
+  .daily-card button.primary{position:relative;z-index:1;}
+  .intro-note{max-width:74ch;margin:0 0 18px;color:#9aa5b5;font-size:12px;line-height:1.75;}
+  .subject-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;}
+  .subject-row{min-height:76px;padding:15px 17px;border:1px solid rgba(186,201,223,.12);border-radius:10px;background:#10151e;color:#edf1f7;transition:transform .18s,border-color .18s,background .18s;}
+  .subject-row:hover{padding-left:17px;transform:translateY(-2px);border-color:rgba(208,173,91,.38);background:#151c27;}
+  .subject-row .num{width:28px;color:#d0ad5b;font-size:10px;}
+  .subject-row .title{font-family:'Space Grotesk',sans-serif;font-size:14px;letter-spacing:-.015em;}
+  .subject-row .meta{color:#778397;font-size:9px;}
+  .subject-row .arrow{color:#e3c47b;}
+  .progress-row{gap:13px;margin-bottom:19px;}
+  .progress-track{height:5px;background:#242d3a;}
+  .progress-fill{background:#d0ad5b;}
+  .progress-label{color:#98a4b6;font-size:10px;}
+  .question-card{padding:26px 28px;margin-bottom:16px;border:1px solid rgba(186,201,223,.13);border-left:3px solid #d0ad5b;border-radius:12px;background:linear-gradient(145deg,#141a24,#10151e);}
+  .question-card.daily{border-left-color:#c2768a;}
+  .question-card .art-label{color:#e3c47b;font-size:10px;letter-spacing:.08em;}
+  .question-card .daily .art-label{color:#d992a5;}
+  .question-card .subject-badge{border:1px solid rgba(186,201,223,.12);border-radius:5px;background:#202836;color:#acb7c8;}
+  .question-card .statement{font-family:'DM Sans',sans-serif;font-size:17px;line-height:1.75;color:#eaf0f8;}
+  .options{gap:9px;}
+  .option{gap:13px;padding:15px 16px;border:1px solid rgba(186,201,223,.14);border-radius:9px;background:#111721;color:#cdd6e4;font:13px/1.65 'DM Sans',sans-serif;}
+  .option:hover:not(.locked){border-color:rgba(208,173,91,.6);background:#171e29;}
+  .option .letter{width:25px;height:25px;display:grid;place-items:center;border:1px solid rgba(208,173,91,.23);border-radius:7px;color:#e3c47b;font-size:10px;}
+  .option.selected{border-color:#d0ad5b;background:#191d25;box-shadow:inset 3px 0 0 #d0ad5b;}
+  .option.correct{border-color:#3c9e75;background:#14271f;color:#d2f5e3;}
+  .option.correct .letter{border-color:#3c9e75;color:#69d7a4;}
+  .option.incorrect{border-color:#a5564e;background:#301e1d;color:#f4d1ca;}
+  .option.incorrect .letter{border-color:#a5564e;color:#e18478;}
+  .explanation{padding:14px 16px;border-radius:0 8px 8px 0;font-size:12px;}
+  .explanation.right{background:#14271f;color:#c3f0d7;}
+  .explanation.wrong{background:#301e1d;color:#f2c9c2;}
+  button.primary,button.ghost{min-height:44px;padding:0 17px;border:1px solid #39475b;border-radius:8px;font:600 12px 'DM Sans',sans-serif;transition:background .2s,border-color .2s;}
+  button.primary{border-color:#d0ad5b;background:#d0ad5b;color:#14120c;}
+  button.primary:hover{border-color:#e3c47b;background:#e3c47b;}
+  button.primary.rose{border-color:#94586a;background:#603543;color:#ffeaf0;}
+  button.primary.rose:hover{background:#754151;}
+  button.ghost{border-color:rgba(186,201,223,.2);color:#cbd5e2;}
+  button.ghost:hover{background:rgba(255,255,255,.05);}
+  button.primary:disabled{opacity:.5;}
+  .result-wrap{max-width:690px;margin:13px auto 0;padding:31px 20px;border:1px solid rgba(186,201,223,.13);border-radius:14px;background:linear-gradient(145deg,#141a24,#10151e);}
+  .result-score{font-family:'Space Grotesk',sans-serif;color:#e3c47b;}
+  .result-score span{color:#8793a6;}
+  .result-label{color:#d0ad5b;font-size:10px;letter-spacing:.11em;}
+  .result-msg{color:#aab5c5;font-size:13px;}
+  .cute-message{border-radius:9px;background:#2d1d25;color:#f1c6d1;font-size:15px;}
+  .app-footer{display:flex;justify-content:space-between;gap:20px;padding:17px 0 22px;border-top:1px solid rgba(186,201,223,.1);color:#6c7788;font-size:10px;}
+  .app-footer a{color:#a1acbd;text-decoration:none;}
+  .app-footer a:hover{color:#e3c47b;}
+  .theme-toggle{width:36px;height:36px;display:inline-grid;place-items:center;flex:0 0 auto;border:1px solid rgba(186,201,223,.2);border-radius:9px;background:rgba(255,255,255,.035);color:#e3c47b;cursor:pointer;font-size:17px;}
+  .theme-toggle:hover{background:rgba(255,255,255,.08);}
+  .option.dim{opacity:1;color:#a5afbf;}
+  .subject-row .meta{color:#a5b1c3;font-size:10px;}
+  .app-footer{color:#9aa5b5;font-size:11px;}
+  .brand-subtitle{color:#a0adbf;font-size:10px;}
+  button.primary:disabled{opacity:.82;}
+  :root[data-theme="light"]{
+    color-scheme:light;--parchment:#f4f6fa;--parchment-dark:#dfe5ee;--navy:#25344d;--navy-deep:#e9eef5;
+    --gold:#78580f;--gold-light:#78580f;--ink:#172033;--ink-soft:#4b596f;
+    --right:#17724b;--right-bg:#e3f3ea;--wrong:#a5322a;--wrong-bg:#fce9e6;--rose:#963650;--rose-bg:#f9e9ee;
+  }
+  [data-theme="light"] body{background:#edf1f6;color:#172033;}
+  [data-theme="light"] .top-nav{border-color:rgba(34,52,80,.13);}
+  [data-theme="light"] header.top{background:linear-gradient(180deg,#fff 0%,#f0f4f9 100%);border-color:rgba(34,52,80,.14);}
+  [data-theme="light"] .brand,[data-theme="light"] .home-link:hover{color:#172033;}
+  [data-theme="light"] .brand-mark{border-color:rgba(120,88,15,.24);background:rgba(120,88,15,.07);color:#78580f;}
+  [data-theme="light"] .brand-subtitle{color:#536178;}
+  [data-theme="light"] .home-link,[data-theme="light"] header.top .sub{color:#46536a;}
+  [data-theme="light"] header.top .kicker,[data-theme="light"] .back-link{color:#78580f;}
+  [data-theme="light"] header.top h1{color:#172033;}
+  [data-theme="light"] .daily-card{border-color:rgba(120,88,15,.2);background:linear-gradient(120deg,#fff,#f7f3e9);color:#172033;}
+  [data-theme="light"] .daily-card::after{opacity:.3;}
+  [data-theme="light"] .daily-card .kicker,[data-theme="light"] .daily-card .done-score{color:#78580f;}
+  [data-theme="light"] .daily-card p.desc,[data-theme="light"] .daily-card .done-row span:last-child{color:#46536a!important;}
+  [data-theme="light"] .daily-card .done-msg{background:#f3ecd9;color:#433713;}
+  [data-theme="light"] .intro-note,[data-theme="light"] .center-note{color:#46536a;}
+  [data-theme="light"] .subject-row{border-color:rgba(34,52,80,.15);background:#fff;color:#172033;}
+  [data-theme="light"] .subject-row:disabled{opacity:1;color:#59677c;}
+  [data-theme="light"] .subject-row:hover{border-color:rgba(120,88,15,.43);background:#fbf8ef;}
+  [data-theme="light"] .subject-row .num,[data-theme="light"] .subject-row .arrow{color:#78580f;}
+  [data-theme="light"] .subject-row .meta,[data-theme="light"] .progress-label{color:#4b596f;}
+  [data-theme="light"] .progress-track{background:#dfe5ee;}
+  [data-theme="light"] .progress-fill{background:#78580f;}
+  [data-theme="light"] .question-card{border-color:rgba(34,52,80,.16);border-left-color:#936d18;background:linear-gradient(145deg,#fff,#f8f9fc);}
+  [data-theme="light"] .question-card.daily{border-left-color:#963650;}
+  [data-theme="light"] .question-card .art-label,[data-theme="light"] .option .letter{color:#78580f;}
+  [data-theme="light"] .question-card.daily .art-label{color:#963650;}
+  [data-theme="light"] .question-card .subject-badge{border-color:rgba(34,52,80,.16);background:#edf1f6;color:#394960;}
+  [data-theme="light"] .question-card .statement{color:#172033;}
+  [data-theme="light"] .option{border-color:rgba(34,52,80,.17);background:#fff;color:#26344a;}
+  [data-theme="light"] .option:hover:not(.locked),[data-theme="light"] .option.selected{border-color:#936d18;background:#fffaf0;}
+  [data-theme="light"] .option.dim{color:#59677c;}
+  [data-theme="light"] .option.correct{border-color:#17724b;background:#e3f3ea;color:#173d2d;}
+  [data-theme="light"] .option.correct .letter{color:#176542;}
+  [data-theme="light"] .option.incorrect{border-color:#a5322a;background:#fce9e6;color:#5c211d;}
+  [data-theme="light"] .option.incorrect .letter{color:#8f2b24;}
+  [data-theme="light"] .explanation.right{background:#e3f3ea;color:#173d2d;}
+  [data-theme="light"] .explanation.wrong{background:#fce9e6;color:#5c211d;}
+  [data-theme="light"] button.primary{border-color:#78580f;background:#78580f;color:#fff;}
+  [data-theme="light"] button.primary:hover{border-color:#62470b;background:#62470b;}
+  [data-theme="light"] button.primary.rose{border-color:#963650;background:#963650;color:#fff;}
+  [data-theme="light"] button.primary.rose:hover{background:#7d2b43;}
+  [data-theme="light"] button.ghost{border-color:#aab5c5;color:#26344a;}
+  [data-theme="light"] button.ghost:hover{background:#edf1f6;}
+  [data-theme="light"] .result-wrap{border-color:rgba(34,52,80,.15);background:#fff;}
+  [data-theme="light"] .result-score,[data-theme="light"] .result-label{color:#78580f;}
+  [data-theme="light"] .result-score span,[data-theme="light"] .result-msg{color:#46536a;}
+  [data-theme="light"] .cute-message{border-color:#963650;background:#f9e9ee;color:#5f2438;}
+  [data-theme="light"] .app-footer{border-color:rgba(34,52,80,.15);color:#4b596f;}
+  [data-theme="light"] .app-footer a{color:#34445d;}
+  [data-theme="light"] .app-footer a:hover{color:#78580f;}
+  [data-theme="light"] .theme-toggle{border-color:rgba(34,52,80,.2);background:#fff;color:#78580f;}
+  [data-theme="light"] .theme-toggle:hover{background:#f4f0e5;}
+  [data-theme="light"] :focus-visible{outline-color:#78580f;}
+  .question-card.daily .art-label{color:#efa0b3;}
+
+  @media (max-width: 600px){
+    .top-nav,.header-inner,main#main,.app-footer{width:calc(100% - 34px);}
+    header.top{padding-bottom:25px;}
+    .top-nav{min-height:62px;}
+    .brand-subtitle{display:none;}
+    .header-inner{padding-top:27px;}
+    header.top h1{font-size:27px;}
+    header.top .sub{font-size:12px;}
+    main#main{padding:25px 0 43px;}
+    .subject-grid{grid-template-columns:1fr;gap:8px;}
+    .subject-row{min-height:67px;padding:12px;}
+    .subject-row:hover{padding-left:12px;}
+    .subject-row .title{font-size:13px;}
+    .subject-row .meta{font-size:10px;}
+    .app-footer{flex-direction:column;gap:6px;}
+    .question-card{ padding: 20px 18px; }
+    .question-card .statement{ font-size: 17px; }
+    .result-actions{ flex-direction:column; }
+    .result-actions button{ width:100%; }
+    .daily-card{ padding: 20px 18px; }
+  }
+  /* Tipografia ampliada para leitura confortável, inclusive em telas menores. */
+  body{font-size:17px;}
+  header.top .kicker,.daily-card .kicker,.question-card .art-label,.result-label{font-size:13px;}
+  header.top h1{font-size:clamp(32px,4.5vw,46px);}
+  header.top .sub,.daily-card p.desc,.intro-note,.center-note,.result-msg{font-size:16px;}
+  .daily-card h2{font-size:25px;}
+  .home-link,.back-link,.app-footer,.brand-subtitle{font-size:14px;}
+  .subject-row .num,.subject-row .meta,.progress-label{font-size:13px;}
+  .subject-row .title{font-size:17px;}
+  .question-card .subject-badge{font-size:14px;}
+  .question-card .statement{font-size:19px;}
+  .option{font-size:16px;}
+  .option .letter{font-size:13px;}
+  .explanation{font-size:15px;}
+  button.primary,button.ghost{font-size:15px;}
+  .result-wrap .result-score{font-size:72px;}
+  .daily-card .done-row span:last-child{font-size:16px!important;}
+  @media (max-width:600px){
+    header.top h1{font-size:32px;}
+    header.top .sub{font-size:15px;}
+    .subject-row .title{font-size:16px;}
+    .subject-row .meta{font-size:12px;}
+    .question-card .statement{font-size:18px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <header class="top">
+    <div class="top-nav">
+      <a class="brand" href="/" aria-label="Luiza, voltar à página inicial"><span class="brand-mark" aria-hidden="true">L</span><span>Luiza</span><span class="brand-subtitle">ESTUDOS EM DIREITO</span></a>
+      <div class="nav-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Ativar tema claro" title="Ativar tema claro"><span data-theme-icon aria-hidden="true">☼</span></button> <a class="home-link" href="/">← Página inicial</a></div>
+    </div>
+    <div class="header-inner" id="header-inner">
+      <p class="kicker">ESTUDOS EM DIREITO</p>
+      <h1 id="header-title">Carregando…</h1>
+    </div>
+  </header>
+  <main id="main"></main>
+  <footer class="app-footer"><span>Luiza — Direito</span><a href="/">Voltar para a plataforma</a></footer>
+</div>
+
+<script nonce="S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR">
+/* ====================== CONFIG SUPABASE ====================== */
+const SUPABASE_URL = "https://ftzmtjlhtmnjsjnkmgvc.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_t8gBrQRy-O4f_7t3mBMrLQ_JZfWPvQw";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false
+  }
+});
+
+let lastLoadError = null;
+let currentUser = null;
+
+const SUBJECT_LABELS = {
+  civil: "Direito Civil",
+  processo_civil: "Processo Civil",
+  penal: "Prática Penal",
+  processo_penal: "Processo Penal",
+  trabalhista: "Prática Trabalhista",
+  empresarial: "Direito Empresarial",
+  ambiental: "Direito Ambiental",
+  oratoria: "Oratória Jurídica"
+};
+
+/* Mensagens fofas — sorteada quando ela zera o Desafio Diário (5/5) */
+const CUTE_MESSAGES = [
+  "5/5. Meu amor é oficialmente mais inteligente que eu. ❤️",
+  "Gabaritou! A futura doutora não decepciona. 🥹❤️",
+  "5/5. Orgulho da minha futura advogada. ⚖️❤️",
+  "Acertou tudo. Agora vem cá ganhar seu prêmio: um beijo. 😘",
+  "5/5. Além de linda, ainda sabe das coisas. Difícil competir. ❤️",
+  "Gabaritou! Eu já sabia que você era incrível. 🥰",
+  "5/5. Tá explicado por que eu sou tão apaixonado. ❤️",
+  "Mais uma vez, você provando que é fora da curva. 💛",
+  "5/5. A inteligência e a beleza resolveram morar na mesma pessoa. 😌❤️",
+  "Gabaritou. A OAB que lute. ⚖️🔥",
+  "5/5. Doutora, posso ser seu cliente favorito? 👀❤️",
+  "Acertou tudo! Sabia que meu orgulho não cabia nesse site. 🥹",
+  "5/5. Meu amor é oficialmente uma máquina de acertar questões. ❤️",
+  "Gabaritou de novo. Assim você me deixa ainda mais apaixonado. 🥰",
+  "5/5. Linda, inteligente e ainda é minha. Dei sorte demais. ❤️",
+  "Você acertou tudo. Eu continuo errando uma coisa: como consegui alguém tão incrível? ❤️",
+  "5/5. Caso encerrado: você é perfeita. ⚖️❤️",
+  "Veredito final: absolutamente maravilhosa. ❤️",
+  "5/5. Sentença: você merece muitos beijinhos. 😘",
+  "Gabaritou! Recurso negado para qualquer pessoa que diga o contrário: você é incrível. ❤️",
+  "5/5. Provas suficientes: eu te amo muito. ❤️⚖️",
+  "Caso encerrado. A futura doutora venceu mais uma. 🥰",
+  "5/5. Excelência, posso pedir um abraço? ❤️",
+  "Acertou tudo. Pena que não existe questão sobre o quanto eu te amo. 🥹❤️",
+  "5/5. Você ganha o quiz e eu ganho o privilégio de te amar. ❤️",
+  "Gabaritou. E eu aqui, todo bobo, admirando você. 🥰",
+  "5/5. Mais uma vitória pra conta da minha garota. ❤️",
+  "Veredito: inteligente demais e linda demais. ❤️",
+  "5/5. A banca tentou, mas não foi dessa vez. 😌⚖️",
+  "Gabaritou! Agora oficialmente não tenho argumentos contra você. 😂❤️",
+  "5/5. Eu já sabia que você ia conseguir. Tenho fé na minha futura doutora. ❤️",
+  "Questões: 5. Você: 5. Eu: completamente apaixonado. ❤️",
+  "5/5. Mais uma prova de que eu escolhi a mulher certa. ❤️",
+  "Acertou tudo. Agora pode cobrar seu pagamento em beijos. 😘",
+  "5/5. Parabéns, amor. Você é simplesmente incrível. ❤️",
+  "Gabaritou! Meu coração também já foi gabaritado por você. 🥹❤️",
+  "5/5. A futura advogada tá impossível hoje. 😮‍💨❤️",
+  "Decisão unânime: você é maravilhosa. ❤️",
+  "5/5. Recurso inexistente. Você simplesmente arrasou. ⚖️❤️",
+  "Fim de jogo: 5/5 e um namorado completamente apaixonado. ❤️",
+  "Você acertou as 5. Mas quem ganhou fui eu quando te encontrei. ❤️",
+  "5/5. E ainda assim, a melhor coisa que você já acertou foi me escolher. 🥹❤️",
+  "Você pode até ter acertado as questões, mas foi eu quem acertou escolhendo você. ❤️",
+  "5/5. Agora chega de prova. Vem receber seu beijo. 😘",
+  "Parabéns, amor. Eu tenho muito orgulho de você. ❤️",
+  "Mais uma vez você conseguiu. E eu vou estar aqui, sempre torcendo por você. ❤️",
+  "5/5. Que sorte a minha poder acompanhar você conquistando seus sonhos. 🥹❤️",
+  "Você gabaritou. Eu só queria aproveitar pra dizer: te amo. ❤️",
+  "Meu resultado favorito sempre vai ser você. ❤️",
+  "5/5. Agora vem cá, futura doutora. Tenho uma surpresa pra você. ❤️"
+];
+
+/* ====================== ESTADO GLOBAL ====================== */
+let ALL_QUESTIONS = [];
+let BANK_BY_SUBJECT = {};
+let dailyStatusToday = null;
+
+let state = {
+  screen: "loading",
+  subjectKey: null,
+  roundQuestions: [],
+  currentIndex: 0,
+  answered: false,
+  selectedOption: null,
+  score: 0,
+  isDaily: false,
+  dailyMessage: null
+};
+
+/* ====================== HELPERS ====================== */
+function esc(str){
+  const d = document.createElement("div");
+  d.textContent = String(str ?? "");
+  return d.innerHTML;
+}
+
+function shuffle(array){
+  const arr = array.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function hashStringToInt(str){
+  let hash = 0;
+  for(let i = 0; i < str.length; i++){
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+function mulberry32(seed){
+  let a = seed;
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function seededShuffle(array, seedStr){
+  const rand = mulberry32(hashStringToInt(seedStr));
+  const arr = array.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function pickRandomQuestions(subjectKey, count){
+  const bank = BANK_BY_SUBJECT[subjectKey] || [];
+  const n = Math.min(count, bank.length);
+  return shuffle(bank).slice(0, n);
+}
+
+function getDailyQuestions(){
+  const pool = ALL_QUESTIONS.filter(q => q.difficulty === "dificil");
+  const shuffled = seededShuffle(pool, todayStr());
+  return shuffled.slice(0, 5);
+}
+
+function pickCuteMessage(){
+  return CUTE_MESSAGES[Math.floor(Math.random() * CUTE_MESSAGES.length)];
+}
+
+function getSafeErrorMessage(err){
+  if(err?.code === "23505") return "O desafio de hoje já foi registrado.";
+  if(err?.message?.toLowerCase().includes("anonymous")) return "Não consegui iniciar sua sessão. Ative o acesso anônimo no Supabase.";
+  return "Não foi possível concluir esta operação agora. Tente novamente.";
+}
+
+/* ====================== AUTENTICAÇÃO ANÔNIMA ======================
+   Cada navegador recebe uma identidade própria do Supabase Auth.
+   Isso é melhor que IP/cookie criado manualmente porque o Supabase
+   entrega um UUID + JWT que o RLS consegue validar com auth.uid().
+=================================================================== */
+async function ensureAnonymousSession(){
+  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+  if(sessionError) throw sessionError;
+
+  if(sessionData.session?.user){
+    currentUser = sessionData.session.user;
+    return currentUser;
+  }
+
+  const { data, error } = await sb.auth.signInAnonymously();
+  if(error) throw error;
+  if(!data.user) throw new Error("Sessão anônima não criada.");
+
+  currentUser = data.user;
+  return currentUser;
+}
+
+/* ====================== CARREGAMENTO ====================== */
+async function loadEverything(){
+  state.screen = "loading";
+  lastLoadError = null;
+  render();
+
+  try {
+    await ensureAnonymousSession();
+
+    /* Nunca mais usamos select("*"). Apenas as colunas que o site realmente usa. */
+    const { data: questions, error: qErr } = await sb
+      .from("questions")
+      .select("id,subject,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty");
+
+    if(qErr) throw qErr;
+
+    ALL_QUESTIONS = (questions || []).map(row => ({
+      id: row.id,
+      subject: row.subject,
+      statement: row.statement,
+      options: {
+        A: row.option_a,
+        B: row.option_b,
+        C: row.option_c,
+        D: row.option_d
+      },
+      correct: row.correct,
+      explanations: {
+        A: row.explanation_a,
+        B: row.explanation_b,
+        C: row.explanation_c,
+        D: row.explanation_d
+      },
+      difficulty: row.difficulty
+    }));
+
+    BANK_BY_SUBJECT = {};
+    ALL_QUESTIONS.forEach(q => {
+      if(!BANK_BY_SUBJECT[q.subject]) BANK_BY_SUBJECT[q.subject] = [];
+      BANK_BY_SUBJECT[q.subject].push(q);
+    });
+
+    const { data: dailyRow, error: dErr } = await sb
+      .from("daily_attempts")
+      .select("id,attempt_date,score,completed,message_shown,created_at")
+      .eq("attempt_date", todayStr())
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if(dErr) throw dErr;
+    dailyStatusToday = dailyRow || null;
+
+    state.screen = "home";
+    render();
+  } catch(err){
+    console.error("Falha ao carregar o aplicativo:", err);
+    lastLoadError = getSafeErrorMessage(err);
+    state.screen = "error";
+    render();
+  }
+}
+
+/* ====================== AÇÕES ====================== */
+function startQuiz(subjectKey){
+  if(!Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, subjectKey)) return;
+
+  state.screen = "quiz";
+  state.subjectKey = subjectKey;
+  state.roundQuestions = pickRandomQuestions(subjectKey, 10);
+  state.currentIndex = 0;
+  state.answered = false;
+  state.selectedOption = null;
+  state.confirmedAnswer = false;
+  state.score = 0;
+  state.isDaily = false;
+  state.dailyMessage = null;
+  render();
+}
+
+function startDaily(){
+  if(!currentUser) return;
+  if(dailyStatusToday?.completed) return;
+
+  const dailyQuestions = getDailyQuestions();
+  if(dailyQuestions.length < 5){
+    lastLoadError = "Ainda não existem 5 questões difíceis disponíveis para o desafio de hoje.";
+    state.screen = "error";
+    render();
+    return;
+  }
+
+  state.screen = "daily-quiz";
+  state.roundQuestions = dailyQuestions;
+  state.currentIndex = 0;
+  state.answered = false;
+  state.selectedOption = null;
+  state.confirmedAnswer = false;
+  state.score = 0;
+  state.isDaily = true;
+  state.dailyMessage = null;
+  render();
+}
+
+function selectOption(letter){
+  if(state.confirmedAnswer) return;
+  if(!["A","B","C","D"].includes(letter)) return;
+
+  // Apenas seleciona. A resposta só é avaliada após a confirmação.
+  state.selectedOption = letter;
+  state.answered = true;
+  render();
+}
+
+function confirmAnswer(){
+  if(!state.answered || state.confirmedAnswer) return;
+  const q = state.roundQuestions[state.currentIndex];
+  if(!q) return;
+  state.confirmedAnswer = true;
+  if(state.selectedOption === q.correct) state.score++;
+  render();
+}
+
+async function nextQuestion(){
+  if(!state.confirmedAnswer) return;
+
+  if(state.currentIndex < state.roundQuestions.length - 1){
+    state.currentIndex++;
+    state.answered = false;
+    state.selectedOption = null;
+    state.confirmedAnswer = false;
+    render();
+    return;
+  }
+
+  if(state.isDaily){
+    let message = null;
+    if(state.score === state.roundQuestions.length){
+      message = pickCuteMessage();
+    }
+    state.dailyMessage = message;
+
+    try {
+      const payload = {
+        user_id: currentUser.id,
+        attempt_date: todayStr(),
+        score: state.score,
+        completed: true,
+        message_shown: message
+      };
+
+      const { data, error } = await sb
+        .from("daily_attempts")
+        .upsert(payload, { onConflict: "user_id,attempt_date" })
+        .select("id,attempt_date,score,completed,message_shown,created_at")
+        .single();
+
+      if(error) throw error;
+      dailyStatusToday = data;
+    } catch(err){
+      console.error("Falha ao registrar o daily:", err);
+      lastLoadError = getSafeErrorMessage(err);
+      state.screen = "error";
+      render();
+      return;
+    }
+
+    state.screen = "daily-result";
+    render();
+  } else {
+    state.screen = "result";
+    render();
+  }
+}
+
+function goHome(){
+  state = {
+    screen: "home",
+    subjectKey: null,
+    roundQuestions: [],
+    currentIndex: 0,
+    answered: false,
+    selectedOption: null,
+    confirmedAnswer: false,
+    score: 0,
+    isDaily: false,
+    dailyMessage: null
+  };
+  render();
+}
+
+function retrySameSubject(){
+  if(state.subjectKey) startQuiz(state.subjectKey);
+}
+
+/* ====================== RENDER ====================== */
+function renderHeader(){
+  const titleEl = document.getElementById("header-title");
+  const inner = document.getElementById("header-inner");
+
+  let backHtml = "";
+  if(state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
+    backHtml = `<button type="button" class="back-link" data-action="home">&larr; voltar às matérias</button>`;
+  }
+
+  if(state.screen === "loading"){
+    inner.innerHTML = `<p class="kicker">ESTUDOS EM DIREITO</p><h1>Carregando questões…</h1>`;
+  } else if(state.screen === "error"){
+    inner.innerHTML = `<p class="kicker">ESTUDOS EM DIREITO</p><h1>Não consegui carregar</h1>`;
+  } else if(state.screen === "home"){
+    inner.innerHTML = `
+      <p class="kicker">PREPARAÇÃO PARA OAB · FGV</p>
+      <h1>Escolha a matéria</h1>
+      <p class="sub">Pratique com questões jurídicas por matéria. Selecione uma alternativa, confirme sua resposta e veja as explicações para aprender com cada rodada.</p>
+    `;
+  } else if(state.screen === "quiz"){
+    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Simulado em andamento</h1>`;
+  } else if(state.screen === "result"){
+    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Resultado do simulado</h1>`;
+  } else if(state.screen === "daily-quiz"){
+    inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>5 questões difíceis de hoje</h1>`;
+  } else if(state.screen === "daily-result"){
+    inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>Resultado de hoje</h1>`;
+  }
+}
+
+function renderLoading(){
+  document.getElementById("main").innerHTML = `<p class="center-note">Preparando seu desafio…</p>`;
+}
+
+function renderError(){
+  document.getElementById("main").innerHTML = `
+    <p class="center-note">
+      ${esc(lastLoadError || "Não foi possível carregar as questões agora. Confira sua conexão e tente novamente.")}
+      <br><br>
+      <button type="button" class="primary retry" data-action="retry">Tentar novamente</button>
+    </p>
+  `;
+}
+
+function renderDailyCard(){
+  const total = 5;
+  if(dailyStatusToday?.completed){
+    const score = Number.isInteger(dailyStatusToday.score) ? dailyStatusToday.score : 0;
+    const perfect = score === total;
+    return `
+      <div class="daily-card">
+        <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
+        <h2>Você já jogou hoje</h2>
+        <div class="done-row">
+          <span class="done-score">${score}/${total}</span>
+          <span style="font-size:13.5px;color:#cdd6e4;">Volte amanhã pra um novo desafio.</span>
+        </div>
+        ${perfect && dailyStatusToday.message_shown ? `<div class="done-msg">${esc(dailyStatusToday.message_shown)}</div>` : ""}
+      </div>
+    `;
+  }
+  return `
+    <div class="daily-card">
+      <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
+      <h2>5 questões difíceis, sorteadas entre todas as matérias</h2>
+      <p class="desc">O mesmo desafio vale para você durante o dia. Acerte as 5 e algo especial aparece no final.</p>
+      <button type="button" class="primary rose" data-action="daily">Começar desafio de hoje &rarr;</button>
+    </div>
+  `;
+}
+
+function renderHome(){
+  const main = document.getElementById("main");
+  const keys = Object.keys(SUBJECT_LABELS).filter(k => BANK_BY_SUBJECT[k] && BANK_BY_SUBJECT[k].length);
+  let rows = keys.map((key, i) => {
+    const label = SUBJECT_LABELS[key];
+    const count = BANK_BY_SUBJECT[key].length;
+    const num = String(i + 1).padStart(2, "0");
+    return `
+      <button type="button" class="subject-row" data-subject="${esc(key)}">
+        <span class="num">${num}</span>
+        <span class="title">${esc(label)}</span>
+        <span class="meta">${count} no banco</span>
+        <span class="arrow">&rarr;</span>
+      </button>
+    `;
+  }).join("");
+
+  main.innerHTML = `
+    ${renderDailyCard()}
+    <p class="intro-note">Cada simulado sorteia 10 questões do banco daquela matéria. Escolha uma alternativa e confirme quando tiver certeza. Só depois da confirmação o site revela o resultado e a explicação.</p>
+    <div class="subject-grid">${rows}</div>
+  `;
+
+  main.querySelectorAll("[data-subject]").forEach(button => {
+    button.addEventListener("click", () => startQuiz(button.dataset.subject));
+  });
+}
+
+function renderQuizLike(isDaily){
+  const main = document.getElementById("main");
+  const q = state.roundQuestions[state.currentIndex];
+  if(!q) return;
+
+  const total = state.roundQuestions.length;
+  const pct = Math.round(((state.currentIndex + 1) / total) * 100);
+  const letters = ["A","B","C","D"];
+
+  let optionsHtml = letters.map(letter => {
+    let cls = "option";
+    if(state.confirmedAnswer){
+      cls += " locked";
+      if(letter === q.correct) cls += " correct";
+      else if(letter === state.selectedOption) cls += " incorrect";
+      else cls += " dim";
+    } else if(letter === state.selectedOption){
+      cls += " selected";
+    }
+
+    return `
+      <button type="button" class="${cls}" data-option="${letter}" ${state.confirmedAnswer ? "disabled" : ""}>
+        <span class="letter">${letter}</span>
+        <span>${esc(q.options[letter])}</span>
+      </button>
+    `;
+  }).join("");
+
+  let explanationHtml = "";
+  if(state.confirmedAnswer){
+    const isRight = state.selectedOption === q.correct;
+    if(isRight){
+      explanationHtml = `<div class="explanation right"><span class="head">Por que está certa</span>${esc(q.explanations[q.correct])}</div>`;
+    } else {
+      explanationHtml = `
+        <div class="explanation wrong"><span class="head">Por que a alternativa ${esc(state.selectedOption)} está errada</span>${esc(q.explanations[state.selectedOption])}</div>
+        <div class="explanation right" style="margin-top:12px;"><span class="head">Por que a alternativa ${esc(q.correct)} está certa</span>${esc(q.explanations[q.correct])}</div>
+      `;
+    }
+  }
+
+  const isLast = state.currentIndex === total - 1;
+
+  const confirmHtml = state.selectedOption && !state.confirmedAnswer ? `
+    <div class="answer-confirm">
+      <p>Você marcou <strong>${esc(state.selectedOption)}</strong>. Quer confirmar sua resposta?</p>
+      <button type="button" class="primary ${isDaily ? "rose" : ""}" id="confirm-answer">Confirmar resposta &rarr;</button>
+    </div>
+  ` : "";
+
+  main.innerHTML = `
+    <div class="progress-row">
+      <span class="progress-label">${state.currentIndex + 1} / ${total}</span>
+      <div class="progress-track"><div class="progress-fill ${isDaily ? "rose" : ""}" style="width:${pct}%"></div></div>
+      <span class="progress-label">${state.score} acertos</span>
+    </div>
+    <div class="question-card ${isDaily ? "daily" : ""}">
+      <p class="art-label">QUESTÃO ${state.currentIndex + 1}${isDaily ? `<span class="subject-badge">${esc(SUBJECT_LABELS[q.subject] || q.subject)}</span>` : ""}</p>
+      <p class="statement">${esc(q.statement)}</p>
+    </div>
+    <div class="options">${optionsHtml}</div>
+    ${confirmHtml}
+    ${explanationHtml}
+    ${state.confirmedAnswer ? `
+      <div class="next-row">
+        <button type="button" class="primary ${isDaily ? "rose" : ""}" id="next-question">${isLast ? "Ver resultado final" : "Próxima questão"} &rarr;</button>
+      </div>
+    ` : ""}
+  `;
+
+  main.querySelectorAll("[data-option]").forEach(button => {
+    button.addEventListener("click", () => selectOption(button.dataset.option));
+  });
+
+  const nextButton = document.getElementById("next-question");
+  if(nextButton) nextButton.addEventListener("click", nextQuestion);
+}
+
+function renderResult(){
+  const main = document.getElementById("main");
+  const total = state.roundQuestions.length;
+  const pct = total ? Math.round((state.score / total) * 100) : 0;
+
+  let msg;
+  if(pct >= 80) msg = "Excelente domínio da matéria — esse desempenho já está no nível de aprovação.";
+  else if(pct >= 60) msg = "Bom resultado. Vale revisar os pontos que geraram dúvida e repetir o simulado.";
+  else msg = "Ainda dá pra melhorar bastante. Recomendo revisar a matéria e tentar de novo — os erros de agora viram acerto na próxima rodada.";
+
+  main.innerHTML = `
+    <div class="result-wrap">
+      <p class="result-label">DESEMPENHO NESTA RODADA</p>
+      <p class="result-score">${state.score}<span>/${total}</span></p>
+      <p class="result-label">${pct}% DE APROVEITAMENTO</p>
+      <p class="result-msg">${esc(msg)}</p>
+      <div class="result-actions">
+        <button type="button" class="primary" id="retry-subject">Refazer este simulado &rarr;</button>
+        <button type="button" class="ghost" id="choose-subject">Escolher outra matéria</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("retry-subject").addEventListener("click", retrySameSubject);
+  document.getElementById("choose-subject").addEventListener("click", goHome);
+}
+
+function renderDailyResult(){
+  const main = document.getElementById("main");
+  const total = state.roundQuestions.length;
+  const perfect = state.score === total;
+
+  main.innerHTML = `
+    <div class="result-wrap">
+      <p class="result-label">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
+      <p class="result-score">${state.score}<span>/${total}</span></p>
+      ${perfect ? `<div class="cute-message">${esc(state.dailyMessage)}</div>` : `<p class="result-msg">Quase lá! Amanhã tem um novo desafio — bora tentar de novo.</p>`}
+      <div class="result-actions">
+        <button type="button" class="ghost" id="back-home">Voltar ao início</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("back-home").addEventListener("click", goHome);
+}
+
+function bindStaticActions(){
+  document.querySelectorAll('[data-action="home"]').forEach(el => {
+    el.addEventListener("click", goHome);
+  });
+  document.querySelectorAll('[data-action="retry"]').forEach(el => {
+    el.addEventListener("click", loadEverything);
+  });
+  document.querySelectorAll('[data-action="daily"]').forEach(el => {
+    el.addEventListener("click", startDaily);
+  });
+}
+
+function render(){
+  renderHeader();
+  if(state.screen === "loading") renderLoading();
+  else if(state.screen === "error") renderError();
+  else if(state.screen === "home") renderHome();
+  else if(state.screen === "quiz") renderQuizLike(false);
+  else if(state.screen === "result") renderResult();
+  else if(state.screen === "daily-quiz") renderQuizLike(true);
+  else if(state.screen === "daily-result") renderDailyResult();
+  bindStaticActions();
+  window.scrollTo({top: 0, behavior: "instant"});
+}
+
+/* Se a sessão expirar, recarrega a identidade antes da próxima operação. */
+sb.auth.onAuthStateChange((_event, session) => {
+  currentUser = session?.user || null;
+});
+
+document.getElementById("main").addEventListener("click", (event) => {
+  if(event.target.closest("#confirm-answer")) confirmAnswer();
+});
+
+loadEverything();
+</script>
+</body>
+</html>

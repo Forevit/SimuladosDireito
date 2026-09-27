@@ -1,0 +1,17 @@
+/* TEAM */
+Developer: Eduardo Ferreira
+Project: Luiza — Plataforma de Estudos
+Contact: contato@eduardoferreira.space
+Portfolio: https://eduardoferreira.space/
+GitHub: https://github.com/Forevit/
+
+/* THANKS */
+Project made especially for: Luiza
+
+/* TECHNOLOGY */
+Standards: HTML5, CSS3, JavaScript
+Database and authentication: Supabase
+Hosting: Vercel
+DNS: Cloudflare
+Interface fonts: DM Sans, Space Grotesk, IBM Plex Mono
+Language: Portuguese (Brazil)
