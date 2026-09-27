@@ -4,6 +4,13 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_t8gBrQRy-O4f_7t3mBMrLQ_JZfWPvQw
 const AREA = document.body.dataset.area || "technology";
 
 const BANK_AREA_KEY = document.body.dataset.area || "technology";
+try {
+  ["law", "technology", "ai"].forEach(area => {
+    sessionStorage.removeItem(`luiza-question-bank-v1-${area}`);
+    sessionStorage.removeItem(`luiza-question-bank-v2-${area}`);
+    localStorage.removeItem(`luiza-continue-${area}`);
+  });
+} catch(_){ /* Storage can be disabled. */ }
 let sb = null;
 if(typeof window.supabase?.createClient === "function"){
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -65,6 +72,9 @@ let state = {
   answered: false,
   selectedOption: null,
   confirmedAnswer: false,
+  answerResult: null,
+  answerLoading: false,
+  answerError: null,
   score: 0,
   isDaily: false,
   dailyMessage: null,
@@ -166,7 +176,7 @@ async function fetchAllRows(queryFactory, pageSize = 500){
 
 async function fetchQuestionRows(){
   if(BANK_AREA_KEY === "ai") return [];
-  const cacheKey = `luiza-question-bank-v2-${BANK_AREA_KEY}`;
+  const cacheKey = `luiza-question-bank-v2-safe-${BANK_AREA_KEY}`;
   try {
     const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
     if(cached && Date.now() - cached.savedAt < 60_000 && Array.isArray(cached.rows)) return cached.rows;
@@ -178,7 +188,7 @@ async function fetchQuestionRows(){
   const subjectAliases = BANK_AREA_KEY === "technology" ? ["seguranca_da_informacao"] : [];
   const rows = await fetchAllRows(() => sb
     .from("questions")
-    .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
+    .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,difficulty")
     .in("subject", [...subjectKeys, ...subjectLabels, ...subjectAliases])
     .order("id", { ascending: true }));
   try { sessionStorage.setItem(cacheKey, JSON.stringify({savedAt:Date.now(),rows})); } catch(_){ /* Cache is optional. */ }
@@ -203,7 +213,7 @@ async function fetchAIContent(){
       .eq("active", true)
       .order("id"),
     fetchAllRows(() => sb.from("questions")
-      .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
+      .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,difficulty")
       .eq("subject_id", subject.id)
       .order("id", { ascending: true }))
   ]);
@@ -239,16 +249,22 @@ function getDailyQuestions(){
   return shuffled.slice(0, 5);
 }
 
-const CONTINUE_KEY = `luiza-continue-${BANK_AREA_KEY}`;
+const CONTINUE_KEY = `luiza-continue-v2-safe-${BANK_AREA_KEY}`;
+
+function questionById(id){
+  return ALL_QUESTIONS.find(question => String(question.id) === String(id)) || null;
+}
 
 function readStudyProgress(){
   try {
     const saved = JSON.parse(localStorage.getItem(CONTINUE_KEY) || "null");
-    if(!saved || !Array.isArray(saved.roundQuestions) || !saved.roundQuestions.length ||
-       !Number.isInteger(saved.currentIndex) || saved.currentIndex < 0 || saved.currentIndex >= saved.roundQuestions.length ||
+    if(!saved || !Array.isArray(saved.questionIds) || !saved.questionIds.length ||
+       !Number.isInteger(saved.currentIndex) || saved.currentIndex < 0 || saved.currentIndex >= saved.questionIds.length ||
        !Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, saved.subjectKey)) return null;
     if(saved.topicId && !AI_TOPICS.some(topic => Number(topic.id) === Number(saved.topicId))) return null;
-    return saved;
+    const roundQuestions = saved.questionIds.map(questionById);
+    if(roundQuestions.some(question => !question)) return null;
+    return { ...saved, roundQuestions };
   } catch(_){ return null; }
 }
 
@@ -258,12 +274,12 @@ function saveStudyProgress(){
     localStorage.setItem(CONTINUE_KEY, JSON.stringify({
       subjectKey: state.subjectKey,
       topicId: state.topicId,
-      roundQuestions: state.roundQuestions,
+      questionIds: state.roundQuestions.map(question => question.id),
       currentIndex: state.currentIndex,
       selectedOption: state.selectedOption,
       confirmedAnswer: state.confirmedAnswer,
       score: state.score,
-      answers: state.answers,
+      answers: state.answers.map(answer => answer ? { selectedOption: answer.selectedOption, isCorrect: Boolean(answer.isCorrect) } : null),
       sessionId: state.sessionId,
       savedAt: Date.now()
     }));
@@ -324,7 +340,10 @@ function resumeStudyProgress(){
     currentIndex: saved.currentIndex,
     selectedOption: saved.selectedOption || null,
     answered: Boolean(saved.selectedOption),
-    confirmedAnswer: Boolean(saved.confirmedAnswer),
+    confirmedAnswer: false,
+    answerResult: null,
+    answerLoading: Boolean(saved.confirmedAnswer && saved.selectedOption),
+    answerError: null,
     score: Number(saved.score) || 0,
     answers: Array.isArray(saved.answers) ? saved.answers : [],
     sessionId: saved.sessionId || newSessionId(),
@@ -334,6 +353,22 @@ function resumeStudyProgress(){
     dailyMessage: null
   };
   render();
+  if(saved.confirmedAnswer && saved.selectedOption){
+    fetchAnswerResult(saved.roundQuestions[saved.currentIndex].id, saved.selectedOption).then(result => {
+      state.answerResult = result;
+      state.confirmedAnswer = true;
+      state.answerLoading = false;
+      state.answerError = null;
+      render();
+      document.getElementById("next-question")?.focus();
+    }).catch(() => {
+      state.answerLoading = false;
+      state.answerError = "Não consegui recuperar a correção. Confirme novamente para tentar.";
+      render();
+      document.getElementById("confirm-answer")?.focus();
+    });
+    return;
+  }
   document.querySelector(state.confirmedAnswer ? "#next-question" : ".question-card .statement")?.focus();
 }
 
@@ -366,12 +401,12 @@ function getResultStats(questions = state.roundQuestions, answers = state.answer
   return { correct, incorrect, difficultyRows };
 }
 
-function renderAnswerExplanations(question, selectedOption){
+function renderAnswerExplanations(answerResult, selectedOption){
   const rows = ["A", "B", "C", "D"].map(letter => {
-    const explanation = question.explanations?.[letter];
+    const explanation = answerResult?.explanations?.[letter];
     if(!explanation) return "";
-    const status = letter === question.correct ? "right" : letter === selectedOption ? "wrong" : "";
-    const label = letter === question.correct ? "correta" : letter === selectedOption ? "sua resposta" : "";
+    const status = letter === answerResult?.correct_answer ? "right" : letter === selectedOption ? "wrong" : "";
+    const label = letter === answerResult?.correct_answer ? "correta" : letter === selectedOption ? "sua resposta" : "";
     return `<div class="explanation ${status}"><span class="head">Alternativa ${letter}${label ? ` · ${label}` : ""}</span>${esc(explanation)}</div>`;
   }).filter(Boolean).join("");
   return `<section class="explanation-list" aria-label="Explicações das alternativas"><h2>Explicações das alternativas</h2>${rows || '<p class="result-msg">Não há explicações cadastradas para esta questão.</p>'}</section>`;
@@ -398,6 +433,9 @@ function startReview(){
   state.selectedOption = null;
   state.answered = false;
   state.confirmedAnswer = false;
+  state.answerResult = null;
+  state.answerLoading = false;
+  state.answerError = null;
   state.isReview = true;
   state.sessionId = newSessionId();
   state.screen = "review-quiz";
@@ -417,7 +455,10 @@ function returnFromReview(){
     currentIndex: 0,
     selectedOption: null,
     answered: false,
-    confirmedAnswer: false
+    confirmedAnswer: false,
+    answerResult: null,
+    answerLoading: false,
+    answerError: null
   };
   render();
   document.querySelector(".result-wrap")?.focus();
@@ -457,6 +498,23 @@ async function ensureAnonymousSession(){
 
   currentUser = data.user;
   return currentUser;
+}
+
+async function fetchAnswerResult(questionId, answer){
+  const { data, error } = await sb.auth.getSession();
+  if(error) throw error;
+  const accessToken = data.session?.access_token;
+  if(!accessToken) throw new Error("Sessão expirada. Recarregue e tente novamente.");
+  const response = await fetch("/api/questions/answer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    cache: "no-store",
+    body: JSON.stringify({ questionId: String(questionId), answer })
+  });
+  if(!response.ok) throw new Error("Não foi possível corrigir a resposta.");
+  const result = await response.json();
+  if(typeof result.is_correct !== "boolean" || !["A", "B", "C", "D"].includes(result.correct_answer)) throw new Error("Resposta inválida do servidor.");
+  return result;
 }
 
 /* ====================== CARREGAMENTO ====================== */
@@ -499,13 +557,6 @@ async function loadEverything(){
         B: row.option_b,
         C: row.option_c,
         D: row.option_d
-      },
-      correct: row.correct,
-      explanations: {
-        A: row.explanation_a,
-        B: row.explanation_b,
-        C: row.explanation_c,
-        D: row.explanation_d
       },
       difficulty: row.difficulty
     }));
@@ -574,6 +625,9 @@ function startQuiz(subjectKey){
   state.answered = false;
   state.selectedOption = null;
   state.confirmedAnswer = false;
+  state.answerResult = null;
+  state.answerLoading = false;
+  state.answerError = null;
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
@@ -596,6 +650,9 @@ function startTopicQuiz(topicId){
   state.answered = false;
   state.selectedOption = null;
   state.confirmedAnswer = false;
+  state.answerResult = null;
+  state.answerLoading = false;
+  state.answerError = null;
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
@@ -618,6 +675,9 @@ function goAiTopics(){
   state.answered = false;
   state.selectedOption = null;
   state.confirmedAnswer = false;
+  state.answerResult = null;
+  state.answerLoading = false;
+  state.answerError = null;
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
@@ -647,6 +707,9 @@ function startDaily(){
   state.answered = false;
   state.selectedOption = null;
   state.confirmedAnswer = false;
+  state.answerResult = null;
+  state.answerLoading = false;
+  state.answerError = null;
   state.score = 0;
   state.isDaily = true;
   state.dailyMessage = null;
@@ -670,17 +733,28 @@ function selectOption(letter){
   document.querySelector(`[data-option="${letter}"]`)?.focus({preventScroll:true});
 }
 
-function confirmAnswer(){
-  if(!state.answered || state.confirmedAnswer) return;
+async function confirmAnswer(){
+  if(!state.answered || state.confirmedAnswer || state.answerLoading) return;
   const q = state.roundQuestions[state.currentIndex];
   if(!q) return;
-  state.confirmedAnswer = true;
-  const isCorrect = state.selectedOption === q.correct;
-  if(isCorrect) state.score++;
-  state.answers[state.currentIndex] = { selectedOption: state.selectedOption, isCorrect, difficulty: q.difficulty };
-  saveStudyProgress();
+  state.answerLoading = true;
+  state.answerError = null;
   render();
-  document.getElementById("next-question")?.focus();
+  try {
+    const result = await fetchAnswerResult(q.id, state.selectedOption);
+    state.answerResult = result;
+    state.confirmedAnswer = true;
+    state.answerLoading = false;
+    state.answers[state.currentIndex] = { selectedOption: state.selectedOption, isCorrect: result.is_correct };
+    state.score = state.answers.filter(answer => answer?.isCorrect).length;
+    saveStudyProgress();
+  } catch(error){
+    state.answerLoading = false;
+    state.answerError = error.message || "Não foi possível corrigir agora. Tente novamente.";
+  }
+  render();
+  if(state.confirmedAnswer) document.getElementById("next-question")?.focus();
+  else document.getElementById("confirm-answer")?.focus();
 }
 
 async function nextQuestion(){
@@ -691,6 +765,9 @@ async function nextQuestion(){
     state.answered = false;
     state.selectedOption = null;
     state.confirmedAnswer = false;
+    state.answerResult = null;
+    state.answerLoading = false;
+    state.answerError = null;
     saveStudyProgress();
     render();
     document.querySelector(".question-card .statement")?.focus();
@@ -778,6 +855,9 @@ function goHome(){
     answered: false,
     selectedOption: null,
     confirmedAnswer: false,
+    answerResult: null,
+    answerLoading: false,
+    answerError: null,
     score: 0,
     isDaily: false,
     dailyMessage: null,
@@ -967,7 +1047,7 @@ function renderQuizLike(isDaily){
     let cls = "option";
     if(state.confirmedAnswer){
       cls += " locked";
-      if(letter === q.correct) cls += " correct";
+      if(letter === state.answerResult?.correct_answer) cls += " correct";
       else if(letter === state.selectedOption) cls += " incorrect";
       else cls += " dim";
     } else if(letter === state.selectedOption){
@@ -984,7 +1064,7 @@ function renderQuizLike(isDaily){
 
   let explanationHtml = "";
   if(state.confirmedAnswer){
-    explanationHtml = `<p class="answer-feedback ${state.selectedOption === q.correct ? "right" : "wrong"}" role="status" aria-live="polite">${state.selectedOption === q.correct ? "✓ Resposta correta." : `✕ Resposta incorreta. A alternativa ${esc(q.correct)} é a correta.`}</p>${renderAnswerExplanations(q, state.selectedOption)}`;
+    explanationHtml = `<p class="answer-feedback ${state.answerResult?.is_correct ? "right" : "wrong"}" role="status" aria-live="polite">${state.answerResult?.is_correct ? "✓ Resposta correta." : `✕ Resposta incorreta. A alternativa ${esc(state.answerResult?.correct_answer)} é a correta.`}</p>${renderAnswerExplanations(state.answerResult, state.selectedOption)}`;
   }
 
   const isLast = state.currentIndex === total - 1;
@@ -992,7 +1072,8 @@ function renderQuizLike(isDaily){
   const confirmHtml = state.selectedOption && !state.confirmedAnswer ? `
     <div class="answer-confirm">
       <p>Você marcou <strong>${esc(state.selectedOption)}</strong>. Quer confirmar sua resposta?</p>
-      <button type="button" class="primary ${isDaily ? "rose" : ""}" id="confirm-answer">Confirmar resposta &rarr;</button>
+      ${state.answerError ? `<p role="alert">${esc(state.answerError)}</p>` : ""}
+      <button type="button" class="primary ${isDaily ? "rose" : ""}" id="confirm-answer" ${state.answerLoading ? "disabled" : ""}>${state.answerLoading ? "Corrigindo…" : "Confirmar resposta →"}</button>
     </div>
   ` : "";
 
