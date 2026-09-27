@@ -4,30 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://cdn.jsdelivr.net 'nonce-S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:;">
-<meta name="description" content="Pratique Tecnologia com questões por tema, simulados e desafios diários na plataforma Luiza.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:; upgrade-insecure-requests;">
+<meta name="description" content="Pratique Tecnologia e TI com questões por tema, sessões de estudo e desafios na plataforma Luiza.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#090b10">
 <link rel="canonical" href="https://luiza.eduardoferreira.space/tecnologia/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Estudos em Tecnologia — Luiza">
-<meta property="og:description" content="Pratique Tecnologia com questões por tema, simulados e desafio diário.">
+<meta property="og:title" content="Questões de Tecnologia e TI | Luiza">
+<meta property="og:description" content="Pratique Tecnologia e TI com questões por tema, sessões de estudo e desafios.">
 <meta property="og:url" content="https://luiza.eduardoferreira.space/tecnologia/">
 <meta property="og:site_name" content="Luiza — Plataforma de Estudos">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary">
-<title>Estudos em Tecnologia — Luiza</title>
+<title>Questões de Tecnologia e TI | Luiza</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://ftzmtjlhtmnjsjnkmgvc.supabase.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/theme.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --navy: #16233d;
@@ -569,6 +569,23 @@
   .app-footer{color:#9aa5b5;font-size:11px;}
   .brand-subtitle{color:#a0adbf;font-size:10px;}
   button.primary:disabled{opacity:.82;}
+  .subject-row:disabled{cursor:not-allowed;opacity:1;}
+  .subject-row .title{min-width:0;}
+  .question-card .statement,.option>span:last-child{overflow-wrap:anywhere;}
+  .option{width:100%;min-width:0;touch-action:manipulation;}
+  .state-card,.empty-state{padding:22px;border:1px solid rgba(186,201,223,.16);border-radius:12px;background:#141a24;color:#edf1f7;line-height:1.7;}
+  .state-card h2,.empty-state h2{margin:0 0 8px;font:600 22px 'Space Grotesk',sans-serif;}
+  .state-card p,.empty-state p{margin:0;color:#cbd5e2;}
+  .state-card a{display:inline-block;margin-top:12px;color:#9beaf0;}
+  .state-message{max-width:68ch;margin:0 auto;padding:24px;border:1px solid rgba(186,201,223,.15);border-radius:12px;background:#141a24;color:#d4e5ea;text-align:center;line-height:1.7;}
+  .state-message h2{margin:0 0 8px;color:#f1f4f9;font:600 24px 'Space Grotesk',sans-serif;}
+  [data-theme="light"] .state-card,[data-theme="light"] .empty-state{border-color:rgba(34,52,80,.16);background:#fff;color:#172033;}
+  [data-theme="light"] .state-card p,[data-theme="light"] .empty-state p{color:#46536a;}
+  [data-theme="light"] .state-card a{color:#087b8d;}
+  [data-theme="light"] .state-message{border-color:rgba(34,52,80,.16);background:#fff;color:#46536a;}
+  [data-theme="light"] .state-message h2{color:#172033;}
+  button:focus-visible,a:focus-visible{outline:3px solid #9beaf0;outline-offset:3px;}
+  [data-theme="light"] button:focus-visible,[data-theme="light"] a:focus-visible{outline-color:#087b8d;}
   :root{--gold:#54d5e6;--gold-light:#9beaf0;--rose:#80c4d0;--rose-bg:#14282d;}
   [data-theme="dark"] header.top{color:#f1f4f9;}
   [data-theme="dark"] header.top h1{color:#f1f4f9;}
@@ -678,6 +695,9 @@
     .app-footer{flex-direction:column;gap:6px;}
     .question-card{ padding: 20px 18px; }
     .question-card .statement{ font-size: 17px; }
+    .option{padding:14px 13px;}
+    .progress-row{gap:8px;}
+    .state-card,.empty-state{padding:18px;}
     .result-actions{ flex-direction:column; }
     .result-actions button{ width:100%; }
     .daily-card{ padding: 20px 18px; }
@@ -718,670 +738,15 @@
     </div>
     <div class="header-inner" id="header-inner">
       <p class="kicker">ESTUDOS EM TECNOLOGIA</p>
-      <h1 id="header-title">Carregando…</h1>
+      <h1 id="header-title">Questões e prática em Tecnologia</h1>
+      <p class="sub">Estude redes, infraestrutura, segurança, programação e outros temas com prática objetiva.</p>
     </div>
   </header>
-  <main id="main"></main>
+  <main id="main" aria-busy="true"><noscript><section class="state-card"><h2>Estudos em Tecnologia</h2><p>Esta área organiza questões técnicas por tema, com sessões de prática e desafio diário quando houver questões suficientes.</p><a href="/">Voltar à plataforma</a></section></noscript></main>
   <footer class="app-footer"><span>Luiza — Tecnologia</span><a href="/">Voltar para a plataforma</a></footer>
 </div>
 
-<script nonce="S_Ghnv6SQscxbsemHSesm8cHTHcPEzjR">
-/* ====================== CONFIG SUPABASE ====================== */
-const SUPABASE_URL = "https://ftzmtjlhtmnjsjnkmgvc.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_t8gBrQRy-O4f_7t3mBMrLQ_JZfWPvQw";
-const AREA = document.body.dataset.area || "technology";
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false
-  }
-});
-
-let lastLoadError = null;
-let currentUser = null;
-
-const SUBJECT_LABELS = {
-  redes: "Redes",
-  infraestrutura: "Infraestrutura",
-  seguranca: "Segurança da Informação",
-  sistemas_operacionais: "Sistemas Operacionais",
-  linux: "Linux",
-  windows: "Windows",
-  virtualizacao: "Virtualização",
-  cloud: "Cloud e Computação em Nuvem",
-  banco_de_dados: "Banco de Dados",
-  programacao: "Programação",
-  devops: "DevOps",
-  hardware: "Hardware"
-};
-
-const TECH_MESSAGES = [
-  "Stack resolvida. Mais uma camada de conhecimento. 🧩",
-  "Mais uma questão dominada. Continue praticando. ⚙️",
-  "Debugue os erros, aprenda com eles e siga em frente. 💻",
-  "Conhecimento técnico se constrói na prática. Mandou bem! 🚀",
-  "Tudo certo nesta rodada. Seu próximo desafio já está esperando. ✨"
-];
-
-/* ====================== ESTADO GLOBAL ====================== */
-let ALL_QUESTIONS = [];
-let BANK_BY_SUBJECT = {};
-let dailyStatusToday = null;
-
-let state = {
-  screen: "loading",
-  subjectKey: null,
-  roundQuestions: [],
-  currentIndex: 0,
-  answered: false,
-  selectedOption: null,
-  score: 0,
-  isDaily: false,
-  dailyMessage: null
-};
-
-/* ====================== HELPERS ====================== */
-function esc(str){
-  const d = document.createElement("div");
-  d.textContent = String(str ?? "");
-  return d.innerHTML;
-}
-
-function normalizeSubject(value){
-  return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
-function resolveSubjectKey(value){
-  const normalized = normalizeSubject(value);
-  if(Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, normalized)) return normalized;
-  return Object.keys(SUBJECT_LABELS).find(key => normalizeSubject(SUBJECT_LABELS[key]) === normalized) || null;
-}
-
-function subjectLabel(value){
-  const key = resolveSubjectKey(value);
-  return key ? SUBJECT_LABELS[key] : String(value ?? "");
-}
-
-function shuffle(array){
-  const arr = array.slice();
-  for(let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function hashStringToInt(str){
-  let hash = 0;
-  for(let i = 0; i < str.length; i++){
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return hash;
-}
-
-function mulberry32(seed){
-  let a = seed;
-  return function(){
-    a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-function seededShuffle(array, seedStr){
-  const rand = mulberry32(hashStringToInt(seedStr));
-  const arr = array.slice();
-  for(let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(rand() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function todayStr(){
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function pickRandomQuestions(subjectKey, count){
-  const bank = BANK_BY_SUBJECT[subjectKey] || [];
-  const n = Math.min(count, bank.length);
-  return shuffle(bank).slice(0, n);
-}
-
-function getDailyQuestions(){
-  const pool = ALL_QUESTIONS.filter(q => q.difficulty === "dificil" && resolveSubjectKey(q.subject));
-  const shuffled = seededShuffle(pool, todayStr());
-  return shuffled.slice(0, 5);
-}
-
-function pickCuteMessage(){
-  return TECH_MESSAGES[Math.floor(Math.random() * TECH_MESSAGES.length)];
-}
-
-function getSafeErrorMessage(err){
-  if(err?.code === "23505") return "O desafio de hoje já foi registrado.";
-  if(err?.message?.toLowerCase().includes("anonymous")) return "Não consegui iniciar sua sessão. Ative o acesso anônimo no Supabase.";
-  return "Não foi possível concluir esta operação agora. Tente novamente.";
-}
-
-/* ====================== AUTENTICAÇÃO ANÔNIMA ======================
-   Cada navegador recebe uma identidade própria do Supabase Auth.
-   Isso é melhor que IP/cookie criado manualmente porque o Supabase
-   entrega um UUID + JWT que o RLS consegue validar com auth.uid().
-=================================================================== */
-async function ensureAnonymousSession(){
-  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
-  if(sessionError) throw sessionError;
-
-  if(sessionData.session?.user){
-    currentUser = sessionData.session.user;
-    return currentUser;
-  }
-
-  const { data, error } = await sb.auth.signInAnonymously();
-  if(error) throw error;
-  if(!data.user) throw new Error("Sessão anônima não criada.");
-
-  currentUser = data.user;
-  return currentUser;
-}
-
-/* ====================== CARREGAMENTO ====================== */
-async function loadEverything(){
-  state.screen = "loading";
-  lastLoadError = null;
-  render();
-
-  try {
-    await ensureAnonymousSession();
-
-    /* Nunca mais usamos select("*"). Apenas as colunas que o site realmente usa. */
-    const { data: questions, error: qErr } = await sb
-      .from("questions")
-      .select("id,subject,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty");
-
-    if(qErr) throw qErr;
-
-    ALL_QUESTIONS = (questions || []).map(row => ({
-      id: row.id,
-      subject: row.subject,
-      statement: row.statement,
-      options: {
-        A: row.option_a,
-        B: row.option_b,
-        C: row.option_c,
-        D: row.option_d
-      },
-      correct: row.correct,
-      explanations: {
-        A: row.explanation_a,
-        B: row.explanation_b,
-        C: row.explanation_c,
-        D: row.explanation_d
-      },
-      difficulty: row.difficulty
-    }));
-
-    BANK_BY_SUBJECT = {};
-    ALL_QUESTIONS.forEach(q => {
-      const subjectKey = resolveSubjectKey(q.subject);
-      if(!subjectKey) return;
-      if(!BANK_BY_SUBJECT[subjectKey]) BANK_BY_SUBJECT[subjectKey] = [];
-      BANK_BY_SUBJECT[subjectKey].push(q);
-    });
-
-    if(AREA === "law"){
-      const { data: dailyRow, error: dErr } = await sb
-        .from("daily_attempts")
-        .select("id,attempt_date,score,completed,message_shown,created_at")
-        .eq("attempt_date", todayStr())
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
-
-      if(dErr) throw dErr;
-      dailyStatusToday = dailyRow || null;
-    } else {
-      try {
-        const savedDaily = JSON.parse(localStorage.getItem(`luiza-tech-daily-${todayStr()}`) || "null");
-        dailyStatusToday = savedDaily?.completed ? savedDaily : null;
-      } catch(_){
-        dailyStatusToday = null;
-      }
-    }
-
-    state.screen = "home";
-    render();
-  } catch(err){
-    console.error("Falha ao carregar o aplicativo:", err);
-    lastLoadError = getSafeErrorMessage(err);
-    state.screen = "error";
-    render();
-  }
-}
-
-/* ====================== AÇÕES ====================== */
-function startQuiz(subjectKey){
-  if(!Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, subjectKey)) return;
-  if(!(BANK_BY_SUBJECT[subjectKey] || []).length) return;
-
-  state.screen = "quiz";
-  state.subjectKey = subjectKey;
-  state.roundQuestions = pickRandomQuestions(subjectKey, 10);
-  state.currentIndex = 0;
-  state.answered = false;
-  state.selectedOption = null;
-  state.confirmedAnswer = false;
-  state.score = 0;
-  state.isDaily = false;
-  state.dailyMessage = null;
-  render();
-}
-
-function startDaily(){
-  if(!currentUser) return;
-  if(dailyStatusToday?.completed) return;
-
-  const dailyQuestions = getDailyQuestions();
-  if(dailyQuestions.length < 5){
-    lastLoadError = "Ainda não existem 5 questões difíceis disponíveis para o desafio de hoje.";
-    state.screen = "error";
-    render();
-    return;
-  }
-
-  state.screen = "daily-quiz";
-  state.roundQuestions = dailyQuestions;
-  state.currentIndex = 0;
-  state.answered = false;
-  state.selectedOption = null;
-  state.confirmedAnswer = false;
-  state.score = 0;
-  state.isDaily = true;
-  state.dailyMessage = null;
-  render();
-}
-
-function selectOption(letter){
-  if(state.confirmedAnswer) return;
-  if(!["A","B","C","D"].includes(letter)) return;
-
-  // Apenas seleciona. A resposta só é avaliada após a confirmação.
-  state.selectedOption = letter;
-  state.answered = true;
-  render();
-}
-
-function confirmAnswer(){
-  if(!state.answered || state.confirmedAnswer) return;
-  const q = state.roundQuestions[state.currentIndex];
-  if(!q) return;
-  state.confirmedAnswer = true;
-  if(state.selectedOption === q.correct) state.score++;
-  render();
-}
-
-async function nextQuestion(){
-  if(!state.confirmedAnswer) return;
-
-  if(state.currentIndex < state.roundQuestions.length - 1){
-    state.currentIndex++;
-    state.answered = false;
-    state.selectedOption = null;
-    state.confirmedAnswer = false;
-    render();
-    return;
-  }
-
-  if(state.isDaily){
-    let message = null;
-    if(state.score === state.roundQuestions.length){
-      message = pickCuteMessage();
-    }
-    state.dailyMessage = message;
-
-    if(AREA === "technology"){
-      dailyStatusToday = {
-        attempt_date: todayStr(),
-        score: state.score,
-        completed: true,
-        message_shown: message
-      };
-      try {
-        localStorage.setItem(`luiza-tech-daily-${todayStr()}`, JSON.stringify(dailyStatusToday));
-      } catch(err){
-        console.warn("Não foi possível salvar o desafio diário neste navegador:", err);
-      }
-      state.screen = "daily-result";
-      render();
-      return;
-    }
-
-    try {
-      const payload = {
-        user_id: currentUser.id,
-        attempt_date: todayStr(),
-        score: state.score,
-        completed: true,
-        message_shown: message
-      };
-
-      const { data, error } = await sb
-        .from("daily_attempts")
-        .upsert(payload, { onConflict: "user_id,attempt_date" })
-        .select("id,attempt_date,score,completed,message_shown,created_at")
-        .single();
-
-      if(error) throw error;
-      dailyStatusToday = data;
-    } catch(err){
-      console.error("Falha ao registrar o daily:", err);
-      lastLoadError = getSafeErrorMessage(err);
-      state.screen = "error";
-      render();
-      return;
-    }
-
-    state.screen = "daily-result";
-    render();
-  } else {
-    state.screen = "result";
-    render();
-  }
-}
-
-function goHome(){
-  state = {
-    screen: "home",
-    subjectKey: null,
-    roundQuestions: [],
-    currentIndex: 0,
-    answered: false,
-    selectedOption: null,
-    confirmedAnswer: false,
-    score: 0,
-    isDaily: false,
-    dailyMessage: null
-  };
-  render();
-}
-
-function retrySameSubject(){
-  if(state.subjectKey) startQuiz(state.subjectKey);
-}
-
-/* ====================== RENDER ====================== */
-function renderHeader(){
-  const titleEl = document.getElementById("header-title");
-  const inner = document.getElementById("header-inner");
-
-  let backHtml = "";
-  if(state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
-    backHtml = `<button type="button" class="back-link" data-action="home">&larr; voltar às matérias</button>`;
-  }
-
-  if(state.screen === "loading"){
-    inner.innerHTML = `<p class="kicker">ESTUDOS EM TECNOLOGIA</p><h1>Carregando os conteúdos…</h1>`;
-  } else if(state.screen === "error"){
-    inner.innerHTML = `<p class="kicker">ESTUDOS EM TECNOLOGIA</p><h1>Não consegui carregar</h1>`;
-  } else if(state.screen === "home"){
-    inner.innerHTML = `
-      <p class="kicker">ESTUDOS EM TECNOLOGIA</p>
-      <h1>Escolha um conteúdo</h1>
-      <p class="sub">Questões por tema, simulados e desafios para aprender praticando. A cada rodada, você responde, confirma e confere a explicação.</p>
-    `;
-  } else if(state.screen === "quiz"){
-    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Sessão em andamento</h1>`;
-  } else if(state.screen === "result"){
-    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Resultado do simulado</h1>`;
-  } else if(state.screen === "daily-quiz"){
-    inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>5 questões difíceis de hoje</h1>`;
-  } else if(state.screen === "daily-result"){
-    inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>Resultado de hoje</h1>`;
-  }
-}
-
-function renderLoading(){
-  document.getElementById("main").innerHTML = `<p class="center-note">Preparando seu desafio…</p>`;
-}
-
-function renderError(){
-  document.getElementById("main").innerHTML = `
-    <p class="center-note">
-      ${esc(lastLoadError || "Não foi possível carregar as questões agora. Confira sua conexão e tente novamente.")}
-      <br><br>
-      <button type="button" class="primary retry" data-action="retry">Tentar novamente</button>
-    </p>
-  `;
-}
-
-function renderDailyCard(){
-  const total = 5;
-  const availableDailyQuestions = getDailyQuestions().length;
-  if(dailyStatusToday?.completed){
-    const score = Number.isInteger(dailyStatusToday.score) ? dailyStatusToday.score : 0;
-    const perfect = score === total;
-    return `
-      <div class="daily-card">
-        <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
-        <h2>Você já jogou hoje</h2>
-        <div class="done-row">
-          <span class="done-score">${score}/${total}</span>
-          <span style="font-size:13.5px;color:#cdd6e4;">Volte amanhã pra um novo desafio.</span>
-        </div>
-        ${perfect && dailyStatusToday.message_shown ? `<div class="done-msg">${esc(dailyStatusToday.message_shown)}</div>` : ""}
-      </div>
-    `;
-  }
-  return `
-    <div class="daily-card">
-      <p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
-      <h2>5 questões difíceis de Tecnologia</h2>
-      <p class="desc">Questões sorteadas entre os temas da área. Confira cada explicação e acompanhe o resultado da rodada.</p>
-      ${availableDailyQuestions < total ? `<p class="daily-availability">O desafio será liberado quando houver pelo menos 5 questões difíceis cadastradas. Disponíveis: ${availableDailyQuestions}/${total}.</p>` : ""}
-      <button type="button" class="primary rose" data-action="daily" ${availableDailyQuestions < total ? "disabled" : ""}>Começar desafio de hoje &rarr;</button>
-    </div>
-  `;
-}
-
-function renderHome(){
-  const main = document.getElementById("main");
-  const keys = Object.keys(SUBJECT_LABELS);
-  let rows = keys.map((key, i) => {
-    const label = SUBJECT_LABELS[key];
-    const count = (BANK_BY_SUBJECT[key] || []).length;
-    const num = String(i + 1).padStart(2, "0");
-    return `
-      <button type="button" class="subject-row" data-subject="${esc(key)}" ${count ? "" : "disabled"}>
-        <span class="num">${num}</span>
-        <span class="title">${esc(label)}</span>
-        <span class="meta">${count ? `${count} no banco` : "0 questões"}</span>
-        <span class="arrow">&rarr;</span>
-      </button>
-    `;
-  }).join("");
-
-  main.innerHTML = `
-    ${renderDailyCard()}
-    <p class="intro-note">Cada sessão sorteia até 10 questões do tema escolhido. Selecione uma alternativa e confirme para ver a resposta e as explicações.</p>
-    <div class="subject-grid">${rows}</div>
-  `;
-
-  main.querySelectorAll("[data-subject]").forEach(button => {
-    button.addEventListener("click", () => startQuiz(button.dataset.subject));
-  });
-}
-
-function renderQuizLike(isDaily){
-  const main = document.getElementById("main");
-  const q = state.roundQuestions[state.currentIndex];
-  if(!q) return;
-
-  const total = state.roundQuestions.length;
-  const pct = Math.round(((state.currentIndex + 1) / total) * 100);
-  const letters = ["A","B","C","D"];
-
-  let optionsHtml = letters.map(letter => {
-    let cls = "option";
-    if(state.confirmedAnswer){
-      cls += " locked";
-      if(letter === q.correct) cls += " correct";
-      else if(letter === state.selectedOption) cls += " incorrect";
-      else cls += " dim";
-    } else if(letter === state.selectedOption){
-      cls += " selected";
-    }
-
-    return `
-      <button type="button" class="${cls}" data-option="${letter}" ${state.confirmedAnswer ? "disabled" : ""}>
-        <span class="letter">${letter}</span>
-        <span>${esc(q.options[letter])}</span>
-      </button>
-    `;
-  }).join("");
-
-  let explanationHtml = "";
-  if(state.confirmedAnswer){
-    const isRight = state.selectedOption === q.correct;
-    if(isRight){
-      explanationHtml = `<div class="explanation right"><span class="head">Por que está certa</span>${esc(q.explanations[q.correct])}</div>`;
-    } else {
-      explanationHtml = `
-        <div class="explanation wrong"><span class="head">Por que a alternativa ${esc(state.selectedOption)} está errada</span>${esc(q.explanations[state.selectedOption])}</div>
-        <div class="explanation right" style="margin-top:12px;"><span class="head">Por que a alternativa ${esc(q.correct)} está certa</span>${esc(q.explanations[q.correct])}</div>
-      `;
-    }
-  }
-
-  const isLast = state.currentIndex === total - 1;
-
-  const confirmHtml = state.selectedOption && !state.confirmedAnswer ? `
-    <div class="answer-confirm">
-      <p>Você marcou <strong>${esc(state.selectedOption)}</strong>. Quer confirmar sua resposta?</p>
-      <button type="button" class="primary ${isDaily ? "rose" : ""}" id="confirm-answer">Confirmar resposta &rarr;</button>
-    </div>
-  ` : "";
-
-  main.innerHTML = `
-    <div class="progress-row">
-      <span class="progress-label">${state.currentIndex + 1} / ${total}</span>
-      <div class="progress-track"><div class="progress-fill ${isDaily ? "rose" : ""}" style="width:${pct}%"></div></div>
-      <span class="progress-label">${state.score} acertos</span>
-    </div>
-    <div class="question-card ${isDaily ? "daily" : ""}">
-      <p class="art-label">QUESTÃO ${state.currentIndex + 1}${isDaily ? `<span class="subject-badge">${esc(subjectLabel(q.subject))}</span>` : ""}</p>
-      <p class="statement">${esc(q.statement)}</p>
-    </div>
-    <div class="options">${optionsHtml}</div>
-    ${confirmHtml}
-    ${explanationHtml}
-    ${state.confirmedAnswer ? `
-      <div class="next-row">
-        <button type="button" class="primary ${isDaily ? "rose" : ""}" id="next-question">${isLast ? "Ver resultado final" : "Próxima questão"} &rarr;</button>
-      </div>
-    ` : ""}
-  `;
-
-  main.querySelectorAll("[data-option]").forEach(button => {
-    button.addEventListener("click", () => selectOption(button.dataset.option));
-  });
-
-  const nextButton = document.getElementById("next-question");
-  if(nextButton) nextButton.addEventListener("click", nextQuestion);
-}
-
-function renderResult(){
-  const main = document.getElementById("main");
-  const total = state.roundQuestions.length;
-  const pct = total ? Math.round((state.score / total) * 100) : 0;
-
-  let msg;
-  if(AREA === "technology"){
-    if(pct >= 80) msg = "Ótimo resultado. Você está consolidando bem esse conteúdo técnico.";
-    else if(pct >= 60) msg = "Boa rodada. Revise os pontos que deram dúvida e tente mais uma vez.";
-    else msg = "Cada erro aponta o que vale revisar. Continue praticando; conhecimento técnico vem com prática.";
-  } else if(pct >= 80) msg = "Excelente domínio da matéria — esse desempenho já está no nível de aprovação.";
-  else if(pct >= 60) msg = "Bom resultado. Vale revisar os pontos que geraram dúvida e repetir o simulado.";
-  else msg = "Ainda dá pra melhorar bastante. Recomendo revisar a matéria e tentar de novo — os erros de agora viram acerto na próxima rodada.";
-
-  main.innerHTML = `
-    <div class="result-wrap">
-      <p class="result-label">DESEMPENHO NESTA RODADA</p>
-      <p class="result-score">${state.score}<span>/${total}</span></p>
-      <p class="result-label">${pct}% DE APROVEITAMENTO</p>
-      <p class="result-msg">${esc(msg)}</p>
-      <div class="result-actions">
-        <button type="button" class="primary" id="retry-subject">Refazer este simulado &rarr;</button>
-        <button type="button" class="ghost" id="choose-subject">Escolher outra matéria</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("retry-subject").addEventListener("click", retrySameSubject);
-  document.getElementById("choose-subject").addEventListener("click", goHome);
-}
-
-function renderDailyResult(){
-  const main = document.getElementById("main");
-  const total = state.roundQuestions.length;
-  const perfect = state.score === total;
-
-  main.innerHTML = `
-    <div class="result-wrap">
-      <p class="result-label">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
-      <p class="result-score">${state.score}<span>/${total}</span></p>
-      ${perfect ? `<div class="cute-message">${esc(state.dailyMessage)}</div>` : `<p class="result-msg">Cada erro mostra um ponto para revisar. Continue praticando e tente novamente quando quiser.</p>`}
-      <div class="result-actions">
-        <button type="button" class="ghost" id="back-home">Voltar ao início</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("back-home").addEventListener("click", goHome);
-}
-
-function bindStaticActions(){
-  document.querySelectorAll('[data-action="home"]').forEach(el => {
-    el.addEventListener("click", goHome);
-  });
-  document.querySelectorAll('[data-action="retry"]').forEach(el => {
-    el.addEventListener("click", loadEverything);
-  });
-  document.querySelectorAll('[data-action="daily"]').forEach(el => {
-    el.addEventListener("click", startDaily);
-  });
-}
-
-function render(){
-  renderHeader();
-  if(state.screen === "loading") renderLoading();
-  else if(state.screen === "error") renderError();
-  else if(state.screen === "home") renderHome();
-  else if(state.screen === "quiz") renderQuizLike(false);
-  else if(state.screen === "result") renderResult();
-  else if(state.screen === "daily-quiz") renderQuizLike(true);
-  else if(state.screen === "daily-result") renderDailyResult();
-  bindStaticActions();
-  window.scrollTo({top: 0, behavior: "instant"});
-}
-
-/* Se a sessão expirar, recarrega a identidade antes da próxima operação. */
-sb.auth.onAuthStateChange((_event, session) => {
-  currentUser = session?.user || null;
-});
-
-document.getElementById("main").addEventListener("click", (event) => {
-  if(event.target.closest("#confirm-answer")) confirmAnswer();
-});
-
-loadEverything();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" crossorigin="anonymous"></script>
+<script src="/tecnologia/app.js"></script>
 </body>
 </html>

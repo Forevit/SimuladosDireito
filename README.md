@@ -64,6 +64,10 @@ Depois do deploy, o sitemap pode ser enviado no Google Search Console para facil
 
 A tabela `questions` contém enunciados, alternativas, respostas, explicações e dificuldade. O desafio diário de Direito usa a tabela `daily_attempts`. As questões aparecem dinamicamente conforme o conteúdo cadastrado no Supabase; por isso, os assuntos e quantidades disponíveis podem mudar.
 
+## Segurança
+
+O arquivo [`vercel.json`](./vercel.json) configura cabeçalhos HTTP de segurança para as páginas publicadas. A auditoria somente de leitura [`supabase/security_audit.sql`](./supabase/security_audit.sql) lista o estado de RLS, políticas, privilégios e funções no schema `public`; revise os resultados antes de mudar regras no banco. A chave publishable do Supabase aparece no JavaScript do navegador por projeto: ela não é uma senha e só é segura com RLS e privilégios mínimos configurados corretamente. Nunca coloque chaves `secret` ou `service_role` no site.
+
 O projeto é educacional e independente. Não possui vínculo oficial com a OAB ou com a FGV. As questões voltadas ao Direito são apresentadas como prática para estudos, não como orientação jurídica.
 
 ## Desenvolvimento
