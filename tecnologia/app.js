@@ -27,6 +27,12 @@ const SUBJECT_LABELS = {
   programacao: "Programação",
   devops: "DevOps",
   hardware: "Hardware",
+  ciberseguranca: "Cibersegurança",
+  active_directory: "Active Directory",
+  powershell: "PowerShell",
+  git: "Git",
+  docker: "Docker",
+  apis: "APIs",
   inteligencia_artificial: "Inteligência Artificial"
 };
 const AI_SUBJECT_SLUG = "inteligencia-artificial";
@@ -58,9 +64,14 @@ let state = {
   currentIndex: 0,
   answered: false,
   selectedOption: null,
+  confirmedAnswer: false,
   score: 0,
   isDaily: false,
-  dailyMessage: null
+  dailyMessage: null,
+  answers: [],
+  isReview: false,
+  reviewOrigin: null,
+  sessionId: null
 };
 
 /* ====================== HELPERS ====================== */
@@ -142,6 +153,17 @@ function pickRandomQuestions(subjectKey, count){
   return shuffle(bank).slice(0, n);
 }
 
+async function fetchAllRows(queryFactory, pageSize = 500){
+  const rows = [];
+  for(let from = 0; ; from += pageSize){
+    const { data, error } = await queryFactory().range(from, from + pageSize - 1);
+    if(error) throw error;
+    const page = data || [];
+    rows.push(...page);
+    if(page.length < pageSize) return rows;
+  }
+}
+
 async function fetchQuestionRows(){
   if(BANK_AREA_KEY === "ai") return [];
   const cacheKey = `luiza-question-bank-v2-${BANK_AREA_KEY}`;
@@ -150,15 +172,15 @@ async function fetchQuestionRows(){
     if(cached && Date.now() - cached.savedAt < 60_000 && Array.isArray(cached.rows)) return cached.rows;
   } catch(_){ /* Storage can be disabled; fetch directly. */ }
 
-  const subjectKeys = Object.keys(SUBJECT_LABELS).filter(key => key !== "inteligencia_artificial");
+  const subjectEntries = Object.entries(SUBJECT_LABELS).filter(([key]) => key !== "inteligencia_artificial");
+  const subjectKeys = subjectEntries.map(([key]) => key);
+  const subjectLabels = subjectEntries.map(([, label]) => label);
   const subjectAliases = BANK_AREA_KEY === "technology" ? ["seguranca_da_informacao"] : [];
-  const { data, error } = await sb
+  const rows = await fetchAllRows(() => sb
     .from("questions")
     .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
-    .in("subject", [...subjectKeys, ...subjectAliases]);
-  if(error) throw error;
-
-  const rows = data || [];
+    .in("subject", [...subjectKeys, ...subjectLabels, ...subjectAliases])
+    .order("id", { ascending: true }));
   try { sessionStorage.setItem(cacheKey, JSON.stringify({savedAt:Date.now(),rows})); } catch(_){ /* Cache is optional. */ }
   return rows;
 }
@@ -174,18 +196,18 @@ async function fetchAIContent(){
   if(subjectError) throw subjectError;
   if(!subject) return { subject: null, topics: [], questions: [] };
 
-  const [{ data: topics, error: topicsError }, { data: questions, error: questionsError }] = await Promise.all([
+  const [{ data: topics, error: topicsError }, questions] = await Promise.all([
     sb.from("topics")
       .select("id,subject_id,parent_topic_id,name,slug,description,active")
       .eq("subject_id", subject.id)
       .eq("active", true)
       .order("id"),
-    sb.from("questions")
+    fetchAllRows(() => sb.from("questions")
       .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
       .eq("subject_id", subject.id)
+      .order("id", { ascending: true }))
   ]);
   if(topicsError) throw topicsError;
-  if(questionsError) throw questionsError;
   return { subject, topics: topics || [], questions: questions || [] };
 }
 
@@ -215,6 +237,190 @@ function getDailyQuestions(){
   const pool = ALL_QUESTIONS.filter(q => q.difficulty === "dificil" && resolveSubjectKey(q.subject));
   const shuffled = seededShuffle(pool, todayStr());
   return shuffled.slice(0, 5);
+}
+
+const CONTINUE_KEY = `luiza-continue-${BANK_AREA_KEY}`;
+
+function readStudyProgress(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(CONTINUE_KEY) || "null");
+    if(!saved || !Array.isArray(saved.roundQuestions) || !saved.roundQuestions.length ||
+       !Number.isInteger(saved.currentIndex) || saved.currentIndex < 0 || saved.currentIndex >= saved.roundQuestions.length ||
+       !Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, saved.subjectKey)) return null;
+    if(saved.topicId && !AI_TOPICS.some(topic => Number(topic.id) === Number(saved.topicId))) return null;
+    return saved;
+  } catch(_){ return null; }
+}
+
+function saveStudyProgress(){
+  if(state.screen !== "quiz" || state.isDaily || state.isReview || !state.roundQuestions.length) return;
+  try {
+    localStorage.setItem(CONTINUE_KEY, JSON.stringify({
+      subjectKey: state.subjectKey,
+      topicId: state.topicId,
+      roundQuestions: state.roundQuestions,
+      currentIndex: state.currentIndex,
+      selectedOption: state.selectedOption,
+      confirmedAnswer: state.confirmedAnswer,
+      score: state.score,
+      answers: state.answers,
+      sessionId: state.sessionId,
+      savedAt: Date.now()
+    }));
+  } catch(err){ console.warn("Não foi possível salvar o progresso desta sessão:", err); }
+}
+
+function clearStudyProgress(){
+  try { localStorage.removeItem(CONTINUE_KEY); } catch(_){ /* Storage is optional. */ }
+}
+
+function newSessionId(){
+  return window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function recordStudySession(type){
+  if(!window.LuizaStudyHistory || !state.sessionId || !state.roundQuestions.length) return;
+  const topic = AI_TOPICS.find(item => Number(item.id) === Number(state.topicId));
+  window.LuizaStudyHistory.record({
+    id: state.sessionId,
+    date: todayStr(),
+    createdAt: Date.now(),
+    area: BANK_AREA_KEY,
+    content: type === "challenge" ? "Desafio diário" : topic?.name || SUBJECT_LABELS[state.subjectKey] || "Tecnologia",
+    subjectKey: state.subjectKey || "",
+    topicId: state.topicId,
+    type,
+    correct: state.score,
+    total: state.roundQuestions.length,
+    answers: state.answers
+  });
+}
+
+function getStudyRecommendation(){
+  if(!window.LuizaStudyHistory) return null;
+  const groups = new Map();
+  window.LuizaStudyHistory.read().filter(record => record.area === BANK_AREA_KEY && record.type === "study").forEach(record => {
+    const key = BANK_AREA_KEY === "ai" ? Number(record.topicId) : record.subjectKey;
+    if(!key) return;
+    const mapKey = String(key);
+    const topic = BANK_AREA_KEY === "ai" ? AI_TOPICS.find(item => Number(item.id) === Number(key)) : null;
+    const group = groups.get(mapKey) || { key, label: topic?.name || SUBJECT_LABELS[record.subjectKey] || record.content, correct: 0, total: 0 };
+    (record.answers || []).forEach(answer => { group.total++; if(answer.isCorrect) group.correct++; });
+    groups.set(mapKey, group);
+  });
+  return [...groups.values()].filter(group => group.total >= 3 && group.correct / group.total < .7)
+    .sort((a, b) => a.correct / a.total - b.correct / b.total || b.total - a.total)[0] || null;
+}
+
+function resumeStudyProgress(){
+  const saved = readStudyProgress();
+  if(!saved) return;
+  state = {
+    ...state,
+    screen: "quiz",
+    subjectKey: saved.subjectKey,
+    topicId: saved.topicId || null,
+    roundQuestions: saved.roundQuestions,
+    currentIndex: saved.currentIndex,
+    selectedOption: saved.selectedOption || null,
+    answered: Boolean(saved.selectedOption),
+    confirmedAnswer: Boolean(saved.confirmedAnswer),
+    score: Number(saved.score) || 0,
+    answers: Array.isArray(saved.answers) ? saved.answers : [],
+    sessionId: saved.sessionId || newSessionId(),
+    isDaily: false,
+    isReview: false,
+    reviewOrigin: null,
+    dailyMessage: null
+  };
+  render();
+  document.querySelector(state.confirmedAnswer ? "#next-question" : ".question-card .statement")?.focus();
+}
+
+function getSavedStudyTitle(saved){
+  if(saved.topicId) return AI_TOPICS.find(topic => Number(topic.id) === Number(saved.topicId))?.name || "Inteligência Artificial";
+  return SUBJECT_LABELS[saved.subjectKey] || "Estudos";
+}
+
+function normalizeDifficulty(value){
+  const normalized = String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  if(normalized.startsWith("fac")) return "facil";
+  if(normalized.startsWith("med")) return "medio";
+  if(normalized.startsWith("dif")) return "dificil";
+  return "outro";
+}
+
+function getResultStats(questions = state.roundQuestions, answers = state.answers){
+  const correct = answers.filter(answer => answer?.isCorrect).length;
+  const incorrect = answers.filter(answer => answer && !answer.isCorrect).length;
+  const difficultyRows = [
+    ["facil", "Fácil"],
+    ["medio", "Média"],
+    ["dificil", "Difícil"]
+  ].map(([key, label]) => {
+    const indices = questions.map((question, index) => normalizeDifficulty(question.difficulty) === key ? index : -1).filter(index => index >= 0);
+    const done = indices.filter(index => answers[index]).length;
+    const hits = indices.filter(index => answers[index]?.isCorrect).length;
+    return `<div class="difficulty-stat"><span>${label}</span><strong>${hits}/${done}</strong></div>`;
+  }).join("");
+  return { correct, incorrect, difficultyRows };
+}
+
+function renderAnswerExplanations(question, selectedOption){
+  const rows = ["A", "B", "C", "D"].map(letter => {
+    const explanation = question.explanations?.[letter];
+    if(!explanation) return "";
+    const status = letter === question.correct ? "right" : letter === selectedOption ? "wrong" : "";
+    const label = letter === question.correct ? "correta" : letter === selectedOption ? "sua resposta" : "";
+    return `<div class="explanation ${status}"><span class="head">Alternativa ${letter}${label ? ` · ${label}` : ""}</span>${esc(explanation)}</div>`;
+  }).filter(Boolean).join("");
+  return `<section class="explanation-list" aria-label="Explicações das alternativas"><h2>Explicações das alternativas</h2>${rows || '<p class="result-msg">Não há explicações cadastradas para esta questão.</p>'}</section>`;
+}
+
+function startReview(){
+  const wrongQuestions = state.roundQuestions.filter((_, index) => state.answers[index] && !state.answers[index].isCorrect);
+  if(!wrongQuestions.length) return;
+  state.reviewOrigin = {
+    screen: state.isDaily ? "daily-result" : "result",
+    subjectKey: state.subjectKey,
+    topicId: state.topicId,
+    roundQuestions: state.roundQuestions,
+    answers: state.answers,
+    sessionId: state.sessionId,
+    score: state.score,
+    isDaily: state.isDaily,
+    dailyMessage: state.dailyMessage
+  };
+  state.roundQuestions = wrongQuestions;
+  state.answers = [];
+  state.score = 0;
+  state.currentIndex = 0;
+  state.selectedOption = null;
+  state.answered = false;
+  state.confirmedAnswer = false;
+  state.isReview = true;
+  state.sessionId = newSessionId();
+  state.screen = "review-quiz";
+  render();
+  document.querySelector(".question-card .statement")?.focus();
+}
+
+function returnFromReview(){
+  const origin = state.reviewOrigin;
+  if(!origin) return goHome();
+  state = {
+    ...state,
+    ...origin,
+    screen: origin.screen,
+    isReview: false,
+    reviewOrigin: null,
+    currentIndex: 0,
+    selectedOption: null,
+    answered: false,
+    confirmedAnswer: false
+  };
+  render();
+  document.querySelector(".result-wrap")?.focus();
 }
 
 function pickCuteMessage(){
@@ -371,6 +577,11 @@ function startQuiz(subjectKey){
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
+  state.answers = [];
+  state.isReview = false;
+  state.reviewOrigin = null;
+  state.sessionId = newSessionId();
+  saveStudyProgress();
   render();
   document.querySelector(".question-card .statement")?.focus();
 }
@@ -388,7 +599,12 @@ function startTopicQuiz(topicId){
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
+  state.answers = [];
+  state.isReview = false;
+  state.reviewOrigin = null;
   state.screen = state.roundQuestions.length ? "quiz" : "topic-empty";
+  state.sessionId = newSessionId();
+  saveStudyProgress();
   render();
   document.getElementById("header-title")?.focus();
 }
@@ -405,6 +621,10 @@ function goAiTopics(){
   state.score = 0;
   state.isDaily = false;
   state.dailyMessage = null;
+  state.answers = [];
+  state.isReview = false;
+  state.reviewOrigin = null;
+  state.sessionId = null;
   render();
   document.getElementById("header-title")?.focus();
 }
@@ -430,6 +650,10 @@ function startDaily(){
   state.score = 0;
   state.isDaily = true;
   state.dailyMessage = null;
+  state.answers = [];
+  state.isReview = false;
+  state.reviewOrigin = null;
+  state.sessionId = newSessionId();
   render();
   document.querySelector(".question-card .statement")?.focus();
 }
@@ -441,6 +665,7 @@ function selectOption(letter){
   // Apenas seleciona. A resposta só é avaliada após a confirmação.
   state.selectedOption = letter;
   state.answered = true;
+  saveStudyProgress();
   render();
   document.querySelector(`[data-option="${letter}"]`)?.focus({preventScroll:true});
 }
@@ -450,7 +675,10 @@ function confirmAnswer(){
   const q = state.roundQuestions[state.currentIndex];
   if(!q) return;
   state.confirmedAnswer = true;
-  if(state.selectedOption === q.correct) state.score++;
+  const isCorrect = state.selectedOption === q.correct;
+  if(isCorrect) state.score++;
+  state.answers[state.currentIndex] = { selectedOption: state.selectedOption, isCorrect, difficulty: q.difficulty };
+  saveStudyProgress();
   render();
   document.getElementById("next-question")?.focus();
 }
@@ -463,8 +691,17 @@ async function nextQuestion(){
     state.answered = false;
     state.selectedOption = null;
     state.confirmedAnswer = false;
+    saveStudyProgress();
     render();
     document.querySelector(".question-card .statement")?.focus();
+    return;
+  }
+
+  if(state.isReview){
+    recordStudySession("review");
+    state.screen = "review-complete";
+    render();
+    document.querySelector(".result-wrap")?.focus();
     return;
   }
 
@@ -487,6 +724,7 @@ async function nextQuestion(){
       } catch(err){
         console.warn("Não foi possível salvar o desafio diário neste navegador:", err);
       }
+      recordStudySession("challenge");
       state.screen = "daily-result";
       render();
       document.querySelector(".result-wrap")?.focus();
@@ -522,6 +760,8 @@ async function nextQuestion(){
     render();
     document.querySelector(".result-wrap")?.focus();
   } else {
+    recordStudySession("study");
+    clearStudyProgress();
     state.screen = "result";
     render();
     document.querySelector(".result-wrap")?.focus();
@@ -540,7 +780,11 @@ function goHome(){
     confirmedAnswer: false,
     score: 0,
     isDaily: false,
-    dailyMessage: null
+    dailyMessage: null,
+    answers: [],
+    isReview: false,
+    reviewOrigin: null,
+    sessionId: null
   };
   render();
   document.getElementById("header-title")?.focus();
@@ -557,7 +801,9 @@ function renderHeader(){
   const inner = document.getElementById("header-inner");
 
   let backHtml = "";
-  if(state.screen === "ai-topics"){
+  if(state.screen === "review-quiz" || state.screen === "review-complete"){
+    backHtml = `<button type="button" class="back-link" data-action="review-back">&larr; voltar ao resultado</button>`;
+  } else if(state.screen === "ai-topics"){
     backHtml = BANK_AREA_KEY === "ai"
       ? `<a class="back-link" href="/">&larr; voltar às áreas</a>`
       : `<button type="button" class="back-link" data-action="home">&larr; voltar à Tecnologia</button>`;
@@ -592,6 +838,10 @@ function renderHeader(){
     inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>5 questões difíceis de hoje</h1>`;
   } else if(state.screen === "daily-result"){
     inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>Resultado de hoje</h1>`;
+  } else if(state.screen === "review-quiz"){
+    inner.innerHTML = `${backHtml}<p class="kicker">REVISÃO DOS ERROS</p><h1>Vamos tentar novamente</h1>`;
+  } else if(state.screen === "review-complete"){
+    inner.innerHTML = `${backHtml}<p class="kicker">REVISÃO CONCLUÍDA</p><h1>Mais uma etapa vencida</h1>`;
   }
   const heading = inner.querySelector("h1");
   if(heading){ heading.id = "header-title"; heading.tabIndex = -1; }
@@ -660,9 +910,16 @@ function renderHome(){
 
   const hasUsableQuestions = ALL_QUESTIONS.some(q => resolveSubjectKey(q.subject));
   const emptyState = !hasUsableQuestions ? `<section class="empty-state" role="status" aria-live="polite"><h2>O banco desta área está vazio</h2><p>Assim que as questões forem cadastradas, os temas aparecerão aqui para você começar a praticar.</p></section>` : "";
+  const saved = readStudyProgress();
+  const savedPercent = saved ? Math.round(((saved.currentIndex + (saved.answers?.[saved.currentIndex] ? 1 : 0)) / saved.roundQuestions.length) * 100) : 0;
+  const continueCard = saved ? `<section class="continue-card" aria-labelledby="continue-title"><div><p class="result-label">SUA ÚLTIMA SESSÃO</p><h2 id="continue-title">Continue de onde parou</h2><p>${esc(getSavedStudyTitle(saved))} · Questão ${saved.currentIndex + 1} de ${saved.roundQuestions.length}</p><p class="continue-percent">${savedPercent}% concluído</p></div><button type="button" class="primary" data-action="resume">Continuar sessão &rarr;</button></section>` : "";
+  const recommendation = getStudyRecommendation();
+  const recommendationCard = recommendation && (BANK_AREA_KEY === "ai" ? AI_TOPICS.some(topic => Number(topic.id) === Number(recommendation.key)) : BANK_BY_SUBJECT[recommendation.key]?.length) ? `<section class="recommend-card"><div><p class="result-label">SUGESTÃO COM BASE NO SEU HISTÓRICO</p><h2>Vale revisar ${esc(recommendation.label)}</h2><p>${recommendation.correct} acertos em ${recommendation.total} respostas neste conteúdo.</p></div><button type="button" class="primary" data-recommend-content="${esc(recommendation.key)}">Praticar agora &rarr;</button></section>` : "";
 
   main.innerHTML = `
     ${renderDailyCard()}
+    ${continueCard}
+    ${recommendationCard}
     <p class="intro-note">Cada sessão sorteia até 10 questões do tema escolhido. Selecione uma alternativa e confirme para ver a resposta e as explicações.</p>
     ${emptyState}
     <div class="subject-grid">${rows}</div>
@@ -671,6 +928,7 @@ function renderHome(){
   main.querySelectorAll("[data-subject]").forEach(button => {
     button.addEventListener("click", () => startQuiz(button.dataset.subject));
   });
+  main.querySelectorAll("[data-recommend-content]").forEach(button => button.addEventListener("click", () => BANK_AREA_KEY === "ai" ? startTopicQuiz(button.dataset.recommendContent) : startQuiz(button.dataset.recommendContent)));
 }
 
 function renderAITopics(){
@@ -681,8 +939,14 @@ function renderAITopics(){
     return `<button type="button" class="ai-topic-row" data-topic="${Number(topic.id)}"><span class="num">${String(index + 1).padStart(2,"0")}</span><span class="title">${esc(topic.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
   }).join("");
   const empty = !AI_TOPICS.length ? `<section class="empty-state" role="status"><h2>Nenhum tópico cadastrado</h2><p>Os tópicos de Inteligência Artificial ainda não estão disponíveis no banco de estudos.</p></section>` : "";
-  main.innerHTML = `${BANK_AREA_KEY === "ai" ? renderDailyCard() : ""}<p class="intro-note">Escolha um tópico para iniciar uma sessão de até 10 questões. Cada resposta inclui explicações para ajudar na revisão.</p>${empty}<div class="ai-topic-list">${rows}</div>`;
+  const saved = readStudyProgress();
+  const savedPercent = saved ? Math.round(((saved.currentIndex + (saved.answers?.[saved.currentIndex] ? 1 : 0)) / saved.roundQuestions.length) * 100) : 0;
+  const continueCard = saved ? `<section class="continue-card" aria-labelledby="continue-title"><div><p class="result-label">SUA ÚLTIMA SESSÃO</p><h2 id="continue-title">Continue de onde parou</h2><p>${esc(getSavedStudyTitle(saved))} · Questão ${saved.currentIndex + 1} de ${saved.roundQuestions.length}</p><p class="continue-percent">${savedPercent}% concluído</p></div><button type="button" class="primary" data-action="resume">Continuar sessão &rarr;</button></section>` : "";
+  const recommendation = getStudyRecommendation();
+  const recommendationCard = recommendation && AI_TOPICS.some(topic => Number(topic.id) === Number(recommendation.key)) ? `<section class="recommend-card"><div><p class="result-label">SUGESTÃO COM BASE NO SEU HISTÓRICO</p><h2>Vale revisar ${esc(recommendation.label)}</h2><p>${recommendation.correct} acertos em ${recommendation.total} respostas neste tópico.</p></div><button type="button" class="primary" data-recommend-content="${esc(recommendation.key)}">Praticar agora &rarr;</button></section>` : "";
+  main.innerHTML = `${BANK_AREA_KEY === "ai" ? renderDailyCard() : ""}${continueCard}${recommendationCard}<p class="intro-note">Escolha um tópico para iniciar uma sessão de até 10 questões. Cada resposta inclui explicações para ajudar na revisão.</p>${empty}<div class="ai-topic-list">${rows}</div>`;
   main.querySelectorAll("[data-topic]").forEach(button => button.addEventListener("click", () => startTopicQuiz(button.dataset.topic)));
+  main.querySelectorAll("[data-recommend-content]").forEach(button => button.addEventListener("click", () => startTopicQuiz(button.dataset.recommendContent)));
 }
 
 function renderTopicEmpty(){
@@ -720,15 +984,7 @@ function renderQuizLike(isDaily){
 
   let explanationHtml = "";
   if(state.confirmedAnswer){
-    const isRight = state.selectedOption === q.correct;
-    if(isRight){
-      explanationHtml = `<div class="explanation right" role="status" aria-live="polite"><span class="head">Por que está certa</span>${esc(q.explanations[q.correct])}</div>`;
-    } else {
-      explanationHtml = `
-        <div class="explanation wrong" role="status" aria-live="polite"><span class="head">Por que a alternativa ${esc(state.selectedOption)} está errada</span>${esc(q.explanations[state.selectedOption])}</div>
-        <div class="explanation right" style="margin-top:12px;" role="status" aria-live="polite"><span class="head">Por que a alternativa ${esc(q.correct)} está certa</span>${esc(q.explanations[q.correct])}</div>
-      `;
-    }
+    explanationHtml = `<p class="answer-feedback ${state.selectedOption === q.correct ? "right" : "wrong"}" role="status" aria-live="polite">${state.selectedOption === q.correct ? "✓ Resposta correta." : `✕ Resposta incorreta. A alternativa ${esc(q.correct)} é a correta.`}</p>${renderAnswerExplanations(q, state.selectedOption)}`;
   }
 
   const isLast = state.currentIndex === total - 1;
@@ -748,7 +1004,7 @@ function renderQuizLike(isDaily){
     </div>
     <div class="question-card ${isDaily ? "daily" : ""}">
       <p class="art-label">QUESTÃO ${state.currentIndex + 1}${isDaily ? `<span class="subject-badge">${esc(subjectLabel(q.subject))}</span>` : ""}</p>
-      <p class="statement" tabindex="-1" aria-live="polite" aria-atomic="true">${esc(q.statement)}</p>
+      <h2 class="statement" tabindex="-1" aria-live="polite" aria-atomic="true">${esc(q.statement)}</h2>
     </div>
     <div class="options" role="group" aria-label="Alternativas da questão">${optionsHtml}</div>
     ${confirmHtml}
@@ -772,6 +1028,8 @@ function renderResult(){
   const main = document.getElementById("main");
   const total = state.roundQuestions.length;
   const pct = total ? Math.round((state.score / total) * 100) : 0;
+  const stats = getResultStats();
+  const hasErrors = stats.incorrect > 0;
 
   let msg;
   if(AREA !== "law"){
@@ -787,15 +1045,19 @@ function renderResult(){
       <p class="result-label">DESEMPENHO NESTA RODADA</p>
       <p class="result-score">${state.score}<span>/${total}</span></p>
       <p class="result-label">${pct}% DE APROVEITAMENTO</p>
+      <div class="result-counts"><span>✓ ${stats.correct} acertos</span><span>✕ ${stats.incorrect} erros</span></div>
+      <div class="difficulty-stats" aria-label="Acertos por dificuldade">${stats.difficultyRows}</div>
       <p class="result-msg">${esc(msg)}</p>
       <div class="result-actions">
         <button type="button" class="primary" id="retry-subject">Refazer este simulado &rarr;</button>
+        ${hasErrors ? `<button type="button" class="ghost" id="review-errors">Revisar ${stats.incorrect} ${stats.incorrect === 1 ? "erro" : "erros"} &rarr;</button>` : ""}
         <button type="button" class="ghost" id="choose-subject">${state.subjectKey === "inteligencia_artificial" ? "Ver outros tópicos" : "Escolher outra matéria"}</button>
       </div>
     </div>
   `;
 
   document.getElementById("retry-subject").addEventListener("click", retrySameSubject);
+  document.getElementById("review-errors")?.addEventListener("click", startReview);
   document.getElementById("choose-subject").addEventListener("click", state.subjectKey === "inteligencia_artificial" ? goAiTopics : goHome);
 }
 
@@ -803,19 +1065,32 @@ function renderDailyResult(){
   const main = document.getElementById("main");
   const total = state.roundQuestions.length;
   const perfect = state.score === total;
+  const stats = getResultStats();
 
   main.innerHTML = `
     <div class="result-wrap" tabindex="-1">
       <p class="result-label">DESAFIO DIÁRIO — ${esc(todayStr())}</p>
       <p class="result-score">${state.score}<span>/${total}</span></p>
+      <p class="result-label">${total ? Math.round((state.score / total) * 100) : 0}% DE APROVEITAMENTO</p>
+      <div class="result-counts"><span>✓ ${stats.correct} acertos</span><span>✕ ${stats.incorrect} erros</span></div>
       ${perfect ? `<div class="cute-message">${esc(state.dailyMessage)}</div>` : `<p class="result-msg">Cada erro mostra um ponto para revisar. Continue praticando e tente novamente quando quiser.</p>`}
+      <p class="result-msg">Seu próximo desafio diário fica disponível amanhã.</p>
       <div class="result-actions">
+        ${stats.incorrect ? `<button type="button" class="primary" id="review-errors">Revisar ${stats.incorrect} ${stats.incorrect === 1 ? "erro" : "erros"} &rarr;</button>` : ""}
         <button type="button" class="ghost" id="back-home">Voltar ao início</button>
       </div>
     </div>
   `;
 
+  document.getElementById("review-errors")?.addEventListener("click", startReview);
   document.getElementById("back-home").addEventListener("click", BANK_AREA_KEY === "ai" ? goAiTopics : goHome);
+}
+
+function renderReviewComplete(){
+  const stats = getResultStats();
+  const total = state.roundQuestions.length;
+  document.getElementById("main").innerHTML = `<div class="result-wrap" tabindex="-1"><p class="result-label">REVISÃO DOS ERROS</p><p class="result-score">${stats.correct}<span>/${total}</span></p><p class="result-msg">Você refez ${total} ${total === 1 ? "questão" : "questões"} que tinha errado. Volte ao resultado para conferir o desempenho original.</p><button type="button" class="primary" id="return-result">Voltar ao resultado &rarr;</button></div>`;
+  document.getElementById("return-result").addEventListener("click", returnFromReview);
 }
 
 function bindStaticActions(){
@@ -832,6 +1107,8 @@ function bindStaticActions(){
   document.querySelectorAll('[data-action="daily"]').forEach(el => {
     el.addEventListener("click", startDaily);
   });
+  document.querySelectorAll('[data-action="resume"]').forEach(el => el.addEventListener("click", resumeStudyProgress));
+  document.querySelectorAll('[data-action="review-back"]').forEach(el => el.addEventListener("click", returnFromReview));
 }
 
 function render(){
@@ -847,6 +1124,8 @@ function render(){
   else if(state.screen === "result") renderResult();
   else if(state.screen === "daily-quiz") renderQuizLike(true);
   else if(state.screen === "daily-result") renderDailyResult();
+  else if(state.screen === "review-quiz") renderQuizLike(state.isDaily);
+  else if(state.screen === "review-complete") renderReviewComplete();
   bindStaticActions();
   if(lastRenderedScreen !== state.screen || lastRenderedQuestionIndex !== state.currentIndex){
     window.scrollTo({top: 0, behavior: "auto"});

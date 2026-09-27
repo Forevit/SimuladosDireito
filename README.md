@@ -35,6 +35,11 @@ Uma sessão de tema sorteia até 10 questões. Os desafios diários de Tecnologi
 - Temas claro e escuro, com preferência salva entre as páginas.
 - Layout adaptado para celular e desktop.
 - Acesso às atividades sem criar uma conta com senha; a aplicação usa autenticação anônima do Supabase para as operações que precisam de identificação.
+- Progresso de sessões em andamento, histórico, estatísticas, sequência de estudos e conquistas salvos localmente no navegador.
+- Recomendações de matérias e tópicos baseadas nas respostas de sessões concluídas no próprio navegador.
+- A Home consulta o número atual de questões, matérias e tópicos e indica quando cada desafio diário tem questões suficientes.
+
+O histórico local não é sincronizado entre dispositivos e pode ser apagado ao limpar os dados do navegador. Sessões incompletas podem ser retomadas no mesmo dispositivo.
 
 ## Tecnologias e serviços
 
@@ -71,7 +76,7 @@ A tabela `questions` contém enunciados, alternativas, respostas, explicações 
 
 ## Segurança
 
-O arquivo [`vercel.json`](./vercel.json) configura cabeçalhos HTTP de segurança para as páginas publicadas. A auditoria somente de leitura [`supabase/security_audit.sql`](./supabase/security_audit.sql) lista o estado de RLS, políticas, privilégios e funções no schema `public`; revise os resultados antes de mudar regras no banco. A chave publishable do Supabase aparece no JavaScript do navegador por projeto: ela não é uma senha e só é segura com RLS e privilégios mínimos configurados corretamente. Nunca coloque chaves `secret` ou `service_role` no site.
+O arquivo [`vercel.json`](./vercel.json) configura cabeçalhos HTTP de segurança para as páginas publicadas. A auditoria somente de leitura [`supabase/security_audit.sql`](./supabase/security_audit.sql) lista o estado de RLS, políticas, privilégios, ACLs e definições das funções no schema `public`; revise os resultados antes de mudar regras no banco. A auditoria de conteúdo [`supabase/content_audit.sql`](./supabase/content_audit.sql) procura duplicidades, campos incompletos, distribuição de dificuldade e disponibilidade dos desafios, sem alterar registros. A chave publishable do Supabase aparece no JavaScript do navegador por projeto: ela não é uma senha e só é segura com RLS e privilégios mínimos configurados corretamente. Nunca coloque chaves `secret` ou `service_role` no site.
 
 O projeto é educacional e independente. Não possui vínculo oficial com a OAB ou com a FGV. As questões voltadas ao Direito são apresentadas como prática para estudos, não como orientação jurídica.
 
