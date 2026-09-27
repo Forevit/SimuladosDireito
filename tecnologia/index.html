@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ftzmtjlhtmnjsjnkmgvc.supabase.co; img-src 'self' data:; upgrade-insecure-requests;">
-<meta name="description" content="Pratique Tecnologia e TI com questões por tema, sessões de estudo e desafios na plataforma Luiza.">
+<meta name="description" content="Pratique Tecnologia, Inteligência Artificial e TI com questões por tema, sessões de estudo e desafios na plataforma Luiza.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#090b10">
 <link rel="canonical" href="https://luiza.eduardoferreira.space/tecnologia/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Questões de Tecnologia e TI | Luiza">
-<meta property="og:description" content="Pratique Tecnologia e TI com questões por tema, sessões de estudo e desafios.">
+<meta property="og:description" content="Pratique Tecnologia, Inteligência Artificial e TI com questões por tema, sessões de estudo e desafios.">
 <meta property="og:url" content="https://luiza.eduardoferreira.space/tecnologia/">
 <meta property="og:site_name" content="Luiza — Plataforma de Estudos">
 <meta property="og:locale" content="pt_BR">
@@ -221,6 +221,25 @@
     font-size: 18px;
     flex-shrink:0;
   }
+
+  .subject-row-ai{border-color:rgba(84,213,230,.28)!important;background:linear-gradient(110deg,rgba(84,213,230,.09),rgba(84,213,230,.025))!important;}
+  .subject-row-ai .title{color:#dffbff;}
+  .ai-topic-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .ai-topic-row{display:flex;align-items:center;gap:14px;min-height:70px;width:100%;padding:14px 16px;border:1px solid rgba(186,201,223,.13);border-radius:10px;background:#10151e;color:#edf1f7;text-align:left;font:inherit;cursor:pointer;transition:transform .18s,border-color .18s,background .18s;}
+  .ai-topic-row:hover{transform:translateY(-2px);border-color:rgba(84,213,230,.4);background:#151c27;}
+  .ai-topic-row .num{flex-shrink:0;width:25px;color:#80e0e8;font:10px 'IBM Plex Mono',monospace;}
+  .ai-topic-row .title{flex:1;font:600 14px 'Space Grotesk',sans-serif;}
+  .ai-topic-row .meta{flex-shrink:0;color:#aab6c8;font:10px 'IBM Plex Mono',monospace;}
+  .ai-topic-row .arrow{color:#80e0e8;font-size:18px;}
+  .ai-topic-group{grid-column:1/-1;overflow:hidden;border:1px solid rgba(84,213,230,.2);border-radius:12px;background:rgba(16,21,30,.7);}
+  .ai-topic-group-heading{display:flex;align-items:center;gap:13px;padding:18px 19px;border-bottom:1px solid rgba(186,201,223,.12);}
+  .ai-topic-icon{display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;border:1px solid rgba(84,213,230,.25);border-radius:10px;background:rgba(84,213,230,.08);color:#80e0e8;font:20px 'Space Grotesk',sans-serif;}
+  .ai-topic-group-heading h2{margin:0;color:#edf1f7;font:600 16px 'Space Grotesk',sans-serif;}
+  .ai-topic-group-heading p{margin:4px 0 0;color:#aab6c8;font-size:12px;}
+  .ai-topic-children{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;}
+  .topic-empty-state{max-width:650px;margin-inline:auto;text-align:center;}
+  .topic-empty-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 14px;border:1px solid rgba(84,213,230,.24);border-radius:14px;background:rgba(84,213,230,.08);color:#80e0e8;font-size:24px;}
+  .topic-empty-state .primary{margin-top:20px;}
 
   .intro-note{
     font-size: 14px;
@@ -642,6 +661,17 @@
   [data-theme="light"] .subject-row:hover{border-color:rgba(8,123,141,.43);background:#f0fafb;}
   [data-theme="light"] .subject-row .num,[data-theme="light"] .subject-row .arrow{color:#087b8d;}
   [data-theme="light"] .subject-row .meta,[data-theme="light"] .progress-label{color:#4b596f;}
+  [data-theme="light"] .subject-row-ai{border-color:rgba(8,123,141,.28)!important;background:linear-gradient(110deg,rgba(8,123,141,.08),rgba(8,123,141,.02))!important;}
+  [data-theme="light"] .subject-row-ai .title{color:#172033;}
+  [data-theme="light"] .ai-topic-row{border-color:rgba(34,52,80,.15);background:#fff;color:#172033;}
+  [data-theme="light"] .ai-topic-row:hover{border-color:rgba(8,123,141,.43);background:#f0fafb;}
+  [data-theme="light"] .ai-topic-row .num,[data-theme="light"] .ai-topic-row .arrow{color:#087b8d;}
+  [data-theme="light"] .ai-topic-row .meta{color:#4b596f;}
+  [data-theme="light"] .ai-topic-group{border-color:rgba(8,123,141,.2);background:#fff;}
+  [data-theme="light"] .ai-topic-group-heading{border-color:rgba(34,52,80,.12);}
+  [data-theme="light"] .ai-topic-icon,[data-theme="light"] .topic-empty-icon{border-color:rgba(8,123,141,.24);background:rgba(8,123,141,.07);color:#087b8d;}
+  [data-theme="light"] .ai-topic-group-heading h2{color:#172033;}
+  [data-theme="light"] .ai-topic-group-heading p{color:#536178;}
   [data-theme="light"] .progress-track{background:#dfe5ee;}
   [data-theme="light"] .progress-fill{background:#087b8d;}
   [data-theme="light"] .question-card{border-color:rgba(34,52,80,.16);border-left-color:#087b8d;background:linear-gradient(145deg,#fff,#f8f9fc);}
@@ -688,6 +718,7 @@
     header.top .sub{font-size:12px;}
     main#main{padding:25px 0 43px;}
     .subject-grid{grid-template-columns:1fr;gap:8px;}
+    .ai-topic-list,.ai-topic-children{grid-template-columns:1fr;}
     .subject-row{min-height:67px;padding:12px;}
     .subject-row:hover{padding-left:12px;}
     .subject-row .title{font-size:13px;}

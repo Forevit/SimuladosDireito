@@ -14,11 +14,13 @@ Plataforma educacional em português do Brasil com atividades de **Direito** e *
 | --- | --- |
 | `/` | Apresentação da plataforma, escolha da área, informações e contato |
 | `/direito/` | Questões por matéria, simulados e desafio diário de Direito |
-| `/tecnologia/` | Questões por tema, sessões de prática e desafio diário de Tecnologia |
+| `/tecnologia/` | Questões por tema, tópicos de Inteligência Artificial dentro de Tecnologia e desafio diário |
 
 ### Tecnologia
 
 As questões são agrupadas por assunto usando o valor `subject`. As chaves recomendadas são `redes`, `infraestrutura`, `seguranca`, `sistemas_operacionais`, `linux`, `windows`, `virtualizacao`, `cloud`, `banco_de_dados`, `programacao`, `devops` e `hardware`. A interface também tenta reconhecer os nomes exibidos desses temas.
+
+A matéria **Inteligência Artificial** pertence à área Tecnologia e usa as relações `subjects` e `topics` do Supabase (`questions.subject_id` e `questions.topic_id`). Seus tópicos e questões são carregados do banco; tópicos sem questões mostram um estado vazio próprio até receberem conteúdo.
 
 Uma sessão de tema sorteia até 10 questões. O desafio diário precisa de pelo menos 5 questões com dificuldade `dificil` para ser iniciado. O resultado diário de Tecnologia é guardado no navegador e vale naquele dispositivo; o desafio diário de Direito é registrado no Supabase e limitado por usuário e data.
 

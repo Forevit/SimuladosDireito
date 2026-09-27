@@ -26,8 +26,11 @@ const SUBJECT_LABELS = {
   banco_de_dados: "Banco de Dados",
   programacao: "Programação",
   devops: "DevOps",
-  hardware: "Hardware"
+  hardware: "Hardware",
+  inteligencia_artificial: "Inteligência Artificial"
 };
+const AI_SUBJECT_SLUG = "inteligencia-artificial";
+const TECH_AREA_ID = 2;
 
 const TECH_MESSAGES = [
   "Stack resolvida. Mais uma camada de conhecimento. 🧩",
@@ -40,6 +43,9 @@ const TECH_MESSAGES = [
 /* ====================== ESTADO GLOBAL ====================== */
 let ALL_QUESTIONS = [];
 let BANK_BY_SUBJECT = {};
+let BANK_BY_TOPIC = {};
+let AI_SUBJECT = null;
+let AI_TOPICS = [];
 let dailyStatusToday = null;
 let lastRenderedScreen = null;
 let lastRenderedQuestionIndex = null;
@@ -47,6 +53,7 @@ let lastRenderedQuestionIndex = null;
 let state = {
   screen: "loading",
   subjectKey: null,
+  topicId: null,
   roundQuestions: [],
   currentIndex: 0,
   answered: false,
@@ -131,23 +138,54 @@ function pickRandomQuestions(subjectKey, count){
 }
 
 async function fetchQuestionRows(){
-  const cacheKey = `luiza-question-bank-v1-${BANK_AREA_KEY}`;
+  const cacheKey = `luiza-question-bank-v2-${BANK_AREA_KEY}`;
   try {
     const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
     if(cached && Date.now() - cached.savedAt < 60_000 && Array.isArray(cached.rows)) return cached.rows;
   } catch(_){ /* Storage can be disabled; fetch directly. */ }
 
-  const subjectKeys = Object.keys(SUBJECT_LABELS);
+  const subjectKeys = Object.keys(SUBJECT_LABELS).filter(key => key !== "inteligencia_artificial");
   const subjectAliases = BANK_AREA_KEY === "technology" ? ["seguranca_da_informacao"] : [];
   const { data, error } = await sb
     .from("questions")
-    .select("id,subject,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
+    .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
     .in("subject", [...subjectKeys, ...subjectAliases]);
   if(error) throw error;
 
   const rows = data || [];
   try { sessionStorage.setItem(cacheKey, JSON.stringify({savedAt:Date.now(),rows})); } catch(_){ /* Cache is optional. */ }
   return rows;
+}
+
+async function fetchAIContent(){
+  const { data: subject, error: subjectError } = await sb
+    .from("subjects")
+    .select("id,area_id,name,slug,description,active")
+    .eq("area_id", TECH_AREA_ID)
+    .eq("slug", AI_SUBJECT_SLUG)
+    .eq("active", true)
+    .maybeSingle();
+  if(subjectError) throw subjectError;
+  if(!subject) return { subject: null, topics: [], questions: [] };
+
+  const [{ data: topics, error: topicsError }, { data: questions, error: questionsError }] = await Promise.all([
+    sb.from("topics")
+      .select("id,subject_id,parent_topic_id,name,slug,description,active")
+      .eq("subject_id", subject.id)
+      .eq("active", true)
+      .order("id"),
+    sb.from("questions")
+      .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,correct,explanation_a,explanation_b,explanation_c,explanation_d,difficulty")
+      .eq("subject_id", subject.id)
+  ]);
+  if(topicsError) throw topicsError;
+  if(questionsError) throw questionsError;
+  return { subject, topics: topics || [], questions: questions || [] };
+}
+
+function pickRandomQuestionsForTopic(topicId, count){
+  const bank = BANK_BY_TOPIC[Number(topicId)] || [];
+  return shuffle(bank).slice(0, Math.min(count, bank.length));
 }
 
 function getDailyQuestions(){
@@ -207,12 +245,22 @@ async function loadEverything(){
   try {
     await ensureAnonymousSession();
 
-    /* Nunca mais usamos select("*"). Apenas as colunas que o site realmente usa. */
-    const questions = await fetchQuestionRows();
+    /* Mantém o carregamento legado e adiciona IA pela relação matéria/tópico. */
+    const [legacyQuestions, aiContent] = await Promise.all([fetchQuestionRows(), fetchAIContent()]);
+    AI_SUBJECT = aiContent.subject;
+    AI_TOPICS = aiContent.topics;
+    const rowsById = new Map();
+    [...legacyQuestions, ...aiContent.questions].forEach(row => rowsById.set(String(row.id), row));
+    const questions = [...rowsById.values()].map(row => ({
+      ...row,
+      subject: Number(row.subject_id) === Number(AI_SUBJECT?.id) ? "inteligencia_artificial" : row.subject
+    }));
 
     ALL_QUESTIONS = (questions || []).map(row => ({
       id: row.id,
       subject: row.subject,
+      subjectId: row.subject_id,
+      topicId: row.topic_id,
       statement: row.statement,
       options: {
         A: row.option_a,
@@ -231,11 +279,17 @@ async function loadEverything(){
     }));
 
     BANK_BY_SUBJECT = {};
+    BANK_BY_TOPIC = {};
     ALL_QUESTIONS.forEach(q => {
       const subjectKey = resolveSubjectKey(q.subject);
       if(!subjectKey) return;
       if(!BANK_BY_SUBJECT[subjectKey]) BANK_BY_SUBJECT[subjectKey] = [];
       BANK_BY_SUBJECT[subjectKey].push(q);
+      if(q.topicId !== null && q.topicId !== undefined){
+        const topicKey = Number(q.topicId);
+        if(!BANK_BY_TOPIC[topicKey]) BANK_BY_TOPIC[topicKey] = [];
+        BANK_BY_TOPIC[topicKey].push(q);
+      }
     });
 
     if(AREA === "law"){
@@ -270,10 +324,19 @@ async function loadEverything(){
 /* ====================== AÇÕES ====================== */
 function startQuiz(subjectKey){
   if(!Object.prototype.hasOwnProperty.call(SUBJECT_LABELS, subjectKey)) return;
+  if(subjectKey === "inteligencia_artificial"){
+    state.screen = "ai-topics";
+    state.subjectKey = subjectKey;
+    state.topicId = null;
+    render();
+    document.getElementById("header-title")?.focus();
+    return;
+  }
   if(!(BANK_BY_SUBJECT[subjectKey] || []).length) return;
 
   state.screen = "quiz";
   state.subjectKey = subjectKey;
+  state.topicId = null;
   state.roundQuestions = pickRandomQuestions(subjectKey, 10);
   state.currentIndex = 0;
   state.answered = false;
@@ -284,6 +347,40 @@ function startQuiz(subjectKey){
   state.dailyMessage = null;
   render();
   document.querySelector(".question-card .statement")?.focus();
+}
+
+function startTopicQuiz(topicId){
+  const topic = AI_TOPICS.find(item => Number(item.id) === Number(topicId));
+  if(!topic) return;
+  state.subjectKey = "inteligencia_artificial";
+  state.topicId = Number(topic.id);
+  state.roundQuestions = pickRandomQuestionsForTopic(topic.id, 10);
+  state.currentIndex = 0;
+  state.answered = false;
+  state.selectedOption = null;
+  state.confirmedAnswer = false;
+  state.score = 0;
+  state.isDaily = false;
+  state.dailyMessage = null;
+  state.screen = state.roundQuestions.length ? "quiz" : "topic-empty";
+  render();
+  document.getElementById("header-title")?.focus();
+}
+
+function goAiTopics(){
+  state.screen = "ai-topics";
+  state.subjectKey = "inteligencia_artificial";
+  state.topicId = null;
+  state.roundQuestions = [];
+  state.currentIndex = 0;
+  state.answered = false;
+  state.selectedOption = null;
+  state.confirmedAnswer = false;
+  state.score = 0;
+  state.isDaily = false;
+  state.dailyMessage = null;
+  render();
+  document.getElementById("header-title")?.focus();
 }
 
 function startDaily(){
@@ -409,6 +506,7 @@ function goHome(){
   state = {
     screen: "home",
     subjectKey: null,
+    topicId: null,
     roundQuestions: [],
     currentIndex: 0,
     answered: false,
@@ -423,6 +521,7 @@ function goHome(){
 }
 
 function retrySameSubject(){
+  if(state.topicId){ startTopicQuiz(state.topicId); return; }
   if(state.subjectKey) startQuiz(state.subjectKey);
 }
 
@@ -432,7 +531,11 @@ function renderHeader(){
   const inner = document.getElementById("header-inner");
 
   let backHtml = "";
-  if(state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
+  if(state.screen === "ai-topics"){
+    backHtml = `<button type="button" class="back-link" data-action="home">&larr; voltar à Tecnologia</button>`;
+  } else if(state.subjectKey === "inteligencia_artificial" && state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
+    backHtml = `<button type="button" class="back-link" data-action="ai-topics">&larr; voltar aos tópicos de IA</button>`;
+  } else if(state.screen !== "home" && state.screen !== "loading" && state.screen !== "error"){
     backHtml = `<button type="button" class="back-link" data-action="home">&larr; voltar às matérias</button>`;
   }
 
@@ -447,9 +550,16 @@ function renderHeader(){
       <p class="sub">Questões por tema, simulados e desafios para aprender praticando. A cada rodada, você responde, confirma e confere a explicação.</p>
     `;
   } else if(state.screen === "quiz"){
-    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Sessão em andamento</h1>`;
+    const title = state.topicId ? AI_TOPICS.find(topic => Number(topic.id) === Number(state.topicId))?.name : SUBJECT_LABELS[state.subjectKey];
+    inner.innerHTML = `${backHtml}<p class="kicker">${esc((title || SUBJECT_LABELS[state.subjectKey]).toUpperCase())}</p><h1>Sessão em andamento</h1>`;
   } else if(state.screen === "result"){
-    inner.innerHTML = `${backHtml}<p class="kicker">${esc(SUBJECT_LABELS[state.subjectKey].toUpperCase())}</p><h1>Resultado do simulado</h1>`;
+    const title = state.topicId ? AI_TOPICS.find(topic => Number(topic.id) === Number(state.topicId))?.name : SUBJECT_LABELS[state.subjectKey];
+    inner.innerHTML = `${backHtml}<p class="kicker">${esc((title || SUBJECT_LABELS[state.subjectKey]).toUpperCase())}</p><h1>Resultado do simulado</h1>`;
+  } else if(state.screen === "ai-topics"){
+    inner.innerHTML = `${backHtml}<p class="kicker">ESTUDOS EM TECNOLOGIA</p><h1>Inteligência Artificial</h1><p class="sub">Explore os tópicos e pratique com questões explicadas. Matemática para IA reúne fundamentos e subtópicos relacionados.</p>`;
+  } else if(state.screen === "topic-empty"){
+    const topic = AI_TOPICS.find(item => Number(item.id) === Number(state.topicId));
+    inner.innerHTML = `${backHtml}<p class="kicker">INTELIGÊNCIA ARTIFICIAL</p><h1>${esc(topic?.name || "Tópico")}</h1>`;
   } else if(state.screen === "daily-quiz"){
     inner.innerHTML = `${backHtml}<p class="kicker">DESAFIO DIÁRIO — ${esc(todayStr())}</p><h1>5 questões difíceis de hoje</h1>`;
   } else if(state.screen === "daily-result"){
@@ -509,12 +619,14 @@ function renderHome(){
   let rows = keys.map((key, i) => {
     const label = SUBJECT_LABELS[key];
     const count = (BANK_BY_SUBJECT[key] || []).length;
+    const isAI = key === "inteligencia_artificial";
+    if(isAI && !AI_SUBJECT) return "";
     const num = String(i + 1).padStart(2, "0");
     return `
-      <button type="button" class="subject-row" data-subject="${esc(key)}" ${count ? "" : "disabled"}>
+      <button type="button" class="subject-row ${isAI ? "subject-row-ai" : ""}" data-subject="${esc(key)}" ${count || isAI ? "" : "disabled"}>
         <span class="num">${num}</span>
         <span class="title">${esc(label)}</span>
-        <span class="meta">${count ? `${count} no banco` : "0 questões"}</span>
+        <span class="meta">${isAI ? `${AI_TOPICS.length} tópicos` : count ? `${count} no banco` : "0 questões"}</span>
         <span class="arrow">&rarr;</span>
       </button>
     `;
@@ -533,6 +645,39 @@ function renderHome(){
   main.querySelectorAll("[data-subject]").forEach(button => {
     button.addEventListener("click", () => startQuiz(button.dataset.subject));
   });
+}
+
+function renderAITopics(){
+  const main = document.getElementById("main");
+  const roots = AI_TOPICS.filter(topic => !topic.parent_topic_id);
+  const children = AI_TOPICS.filter(topic => topic.parent_topic_id);
+  let index = 0;
+  const rows = roots.map(topic => {
+    const nested = children.filter(child => Number(child.parent_topic_id) === Number(topic.id));
+    if(nested.length){
+      const questionCount = nested.reduce((sum, child) => sum + (BANK_BY_TOPIC[Number(child.id)] || []).length, 0);
+      const childRows = nested.map(child => {
+        index++;
+        const count = (BANK_BY_TOPIC[Number(child.id)] || []).length;
+        return `<button type="button" class="ai-topic-row" data-topic="${Number(child.id)}"><span class="num">${String(index).padStart(2,"0")}</span><span class="title">${esc(child.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
+      }).join("");
+      return `<section class="ai-topic-group" aria-labelledby="ai-topic-${Number(topic.id)}">
+        <div class="ai-topic-group-heading"><span class="ai-topic-icon" aria-hidden="true">∑</span><div><h2 id="ai-topic-${Number(topic.id)}">${esc(topic.name)}</h2><p>${nested.length} subtópicos · ${questionCount} questões</p></div></div>
+        <div class="ai-topic-children">${childRows}</div>
+      </section>`;
+    }
+    index++;
+    const count = (BANK_BY_TOPIC[Number(topic.id)] || []).length;
+    return `<button type="button" class="ai-topic-row" data-topic="${Number(topic.id)}"><span class="num">${String(index).padStart(2,"0")}</span><span class="title">${esc(topic.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
+  }).join("");
+  const empty = !AI_TOPICS.length ? `<section class="empty-state" role="status"><h2>Nenhum tópico cadastrado</h2><p>Os tópicos de Inteligência Artificial ainda não estão disponíveis no banco de estudos.</p></section>` : "";
+  main.innerHTML = `<p class="intro-note">Escolha um tópico para iniciar uma sessão de até 10 questões. Cada resposta inclui explicações para ajudar na revisão.</p>${empty}<div class="ai-topic-list">${rows}</div>`;
+  main.querySelectorAll("[data-topic]").forEach(button => button.addEventListener("click", () => startTopicQuiz(button.dataset.topic)));
+}
+
+function renderTopicEmpty(){
+  const topic = AI_TOPICS.find(item => Number(item.id) === Number(state.topicId));
+  document.getElementById("main").innerHTML = `<section class="empty-state topic-empty-state" role="status"><span class="topic-empty-icon" aria-hidden="true">✦</span><h2>Este tópico ainda não tem questões</h2><p>${esc(topic?.name || "Este tópico")} já está organizado na área de Inteligência Artificial. Assim que houver questões vinculadas, elas aparecerão aqui.</p><button type="button" class="primary" data-action="ai-topics">Ver outros tópicos</button></section>`;
 }
 
 function renderQuizLike(isDaily){
@@ -635,13 +780,13 @@ function renderResult(){
       <p class="result-msg">${esc(msg)}</p>
       <div class="result-actions">
         <button type="button" class="primary" id="retry-subject">Refazer este simulado &rarr;</button>
-        <button type="button" class="ghost" id="choose-subject">Escolher outra matéria</button>
+        <button type="button" class="ghost" id="choose-subject">${state.subjectKey === "inteligencia_artificial" ? "Ver outros tópicos" : "Escolher outra matéria"}</button>
       </div>
     </div>
   `;
 
   document.getElementById("retry-subject").addEventListener("click", retrySameSubject);
-  document.getElementById("choose-subject").addEventListener("click", goHome);
+  document.getElementById("choose-subject").addEventListener("click", state.subjectKey === "inteligencia_artificial" ? goAiTopics : goHome);
 }
 
 function renderDailyResult(){
@@ -667,6 +812,7 @@ function bindStaticActions(){
   document.querySelectorAll('[data-action="home"]').forEach(el => {
     el.addEventListener("click", goHome);
   });
+  document.querySelectorAll('[data-action="ai-topics"]').forEach(el => el.addEventListener("click", goAiTopics));
   document.querySelectorAll('[data-action="retry"]').forEach(el => {
     el.addEventListener("click", loadEverything);
   });
@@ -685,6 +831,8 @@ function render(){
   if(state.screen === "loading") renderLoading();
   else if(state.screen === "error") renderError();
   else if(state.screen === "home") renderHome();
+  else if(state.screen === "ai-topics") renderAITopics();
+  else if(state.screen === "topic-empty") renderTopicEmpty();
   else if(state.screen === "quiz") renderQuizLike(false);
   else if(state.screen === "result") renderResult();
   else if(state.screen === "daily-quiz") renderQuizLike(true);
