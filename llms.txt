@@ -1,6 +1,6 @@
 # Luiza — Plataforma de Estudos
 
-> Plataforma educacional em português do Brasil para praticar conteúdos de Direito e Tecnologia com questões, simulados e desafios.
+> Plataforma educacional em português do Brasil para praticar conteúdos de Direito e Tecnologia, incluindo Inteligência Artificial dentro de Tecnologia, com questões, simulados e desafios.
 
 O conteúdo e a quantidade de questões podem mudar conforme o banco é atualizado. A área de Direito oferece preparação por matéria para a OAB; a área de Tecnologia organiza a prática por tema. Este é um projeto educacional independente, sem vínculo oficial com a OAB ou com a FGV.
 
@@ -8,7 +8,7 @@ O conteúdo e a quantidade de questões podem mudar conforme o banco é atualiza
 
 - [Página inicial](https://luiza.eduardoferreira.space/): apresentação da plataforma e escolha da área de estudo.
 - [Estudos em Direito](https://luiza.eduardoferreira.space/direito/): simulados por matéria e desafio diário.
-- [Estudos em Tecnologia](https://luiza.eduardoferreira.space/tecnologia/): sessões por tema e desafio diário de Tecnologia.
+- [Estudos em Tecnologia](https://luiza.eduardoferreira.space/tecnologia/): sessões por tema, tópicos de Inteligência Artificial integrados à Tecnologia e desafio diário.
 
 ## Informações do projeto
 
