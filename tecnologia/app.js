@@ -190,8 +190,25 @@ async function fetchAIContent(){
 }
 
 function pickRandomQuestionsForTopic(topicId, count){
-  const bank = BANK_BY_TOPIC[Number(topicId)] || [];
+  const topicIds = getTopicTreeIds(topicId);
+  const bank = topicIds.flatMap(id => BANK_BY_TOPIC[id] || []);
   return shuffle(bank).slice(0, Math.min(count, bank.length));
+}
+
+function getTopicTreeIds(topicId){
+  const ids = [Number(topicId)];
+  const pending = [...ids];
+  while(pending.length){
+    const parentId = pending.pop();
+    AI_TOPICS.filter(topic => Number(topic.parent_topic_id) === parentId).forEach(child => {
+      const childId = Number(child.id);
+      if(!ids.includes(childId)){
+        ids.push(childId);
+        pending.push(childId);
+      }
+    });
+  }
+  return ids;
 }
 
 function getDailyQuestions(){
@@ -567,7 +584,7 @@ function renderHeader(){
     const title = state.topicId ? AI_TOPICS.find(topic => Number(topic.id) === Number(state.topicId))?.name : SUBJECT_LABELS[state.subjectKey];
     inner.innerHTML = `${backHtml}<p class="kicker">${esc((title || SUBJECT_LABELS[state.subjectKey]).toUpperCase())}</p><h1>Resultado do simulado</h1>`;
   } else if(state.screen === "ai-topics"){
-    inner.innerHTML = `${backHtml}<p class="kicker">ÁREA DE ESTUDO</p><h1>Inteligência Artificial</h1><p class="sub">Explore os tópicos e pratique com questões explicadas. Matemática para IA reúne fundamentos e subtópicos relacionados.</p>`;
+    inner.innerHTML = `${backHtml}<p class="kicker">ÁREA DE ESTUDO</p><h1>Inteligência Artificial</h1><p class="sub">Explore os tópicos e pratique com questões explicadas. Matemática para IA aparece como um único tópico de estudo.</p>`;
   } else if(state.screen === "topic-empty"){
     const topic = AI_TOPICS.find(item => Number(item.id) === Number(state.topicId));
     inner.innerHTML = `${backHtml}<p class="kicker">INTELIGÊNCIA ARTIFICIAL</p><h1>${esc(topic?.name || "Tópico")}</h1>`;
@@ -659,25 +676,9 @@ function renderHome(){
 function renderAITopics(){
   const main = document.getElementById("main");
   const roots = AI_TOPICS.filter(topic => !topic.parent_topic_id);
-  const children = AI_TOPICS.filter(topic => topic.parent_topic_id);
-  let index = 0;
-  const rows = roots.map(topic => {
-    const nested = children.filter(child => Number(child.parent_topic_id) === Number(topic.id));
-    if(nested.length){
-      const questionCount = nested.reduce((sum, child) => sum + (BANK_BY_TOPIC[Number(child.id)] || []).length, 0);
-      const childRows = nested.map(child => {
-        index++;
-        const count = (BANK_BY_TOPIC[Number(child.id)] || []).length;
-        return `<button type="button" class="ai-topic-row" data-topic="${Number(child.id)}"><span class="num">${String(index).padStart(2,"0")}</span><span class="title">${esc(child.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
-      }).join("");
-      return `<section class="ai-topic-group" aria-labelledby="ai-topic-${Number(topic.id)}">
-        <div class="ai-topic-group-heading"><span class="ai-topic-icon" aria-hidden="true">∑</span><div><h2 id="ai-topic-${Number(topic.id)}">${esc(topic.name)}</h2><p>${nested.length} subtópicos · ${questionCount} questões</p></div></div>
-        <div class="ai-topic-children">${childRows}</div>
-      </section>`;
-    }
-    index++;
-    const count = (BANK_BY_TOPIC[Number(topic.id)] || []).length;
-    return `<button type="button" class="ai-topic-row" data-topic="${Number(topic.id)}"><span class="num">${String(index).padStart(2,"0")}</span><span class="title">${esc(topic.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
+  const rows = roots.map((topic, index) => {
+    const count = getTopicTreeIds(topic.id).reduce((sum, id) => sum + (BANK_BY_TOPIC[id] || []).length, 0);
+    return `<button type="button" class="ai-topic-row" data-topic="${Number(topic.id)}"><span class="num">${String(index + 1).padStart(2,"0")}</span><span class="title">${esc(topic.name)}</span><span class="meta">${count} questões</span><span class="arrow" aria-hidden="true">→</span></button>`;
   }).join("");
   const empty = !AI_TOPICS.length ? `<section class="empty-state" role="status"><h2>Nenhum tópico cadastrado</h2><p>Os tópicos de Inteligência Artificial ainda não estão disponíveis no banco de estudos.</p></section>` : "";
   main.innerHTML = `${BANK_AREA_KEY === "ai" ? renderDailyCard() : ""}<p class="intro-note">Escolha um tópico para iniciar uma sessão de até 10 questões. Cada resposta inclui explicações para ajudar na revisão.</p>${empty}<div class="ai-topic-list">${rows}</div>`;
