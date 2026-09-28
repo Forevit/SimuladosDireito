@@ -31,7 +31,7 @@ Execute `supabase/question-answer-security.sql` no SQL Editor do Supabase. A tra
 
 ## Verificação manual após deploy
 
-1. Abra Direito, Tecnologia e Inteligência Artificial; no carregamento inicial, as consultas a `questions` não devem conter `correct` nem `explanation_*`.
+1. Abra Direito, Tecnologia e Inteligência Artificial; no carregamento inicial, o frontend consulta apenas a view `questions_public`, que não contém `correct` nem `explanation_*`.
 2. Antes de confirmar, verifique que a resposta não está em memória da página, localStorage ou sessionStorage. As chaves de cache antigas e o progresso legado são removidos.
 3. Confirme uma alternativa: deve ocorrer um `POST /api/questions/answer`, seguido da correção e explicações.
 4. Teste o endpoint sem token (401), método diferente de POST (405), alternativa inválida (400) e ID inexistente (404).
