@@ -193,7 +193,7 @@ async function fetchQuestionRows(){
   const subjectKeys = Object.keys(SUBJECT_LABELS);
   const subjectAliases = BANK_AREA_KEY === "technology" ? ["seguranca_da_informacao"] : [];
   const rows = await fetchAllRows(() => sb
-    .from("questions")
+    .from("questions_public")
     .select("id,subject,statement,option_a,option_b,option_c,option_d,difficulty")
     .in("subject", [...subjectKeys, ...Object.values(SUBJECT_LABELS), ...subjectAliases])
     .order("id", { ascending: true }));

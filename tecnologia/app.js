@@ -187,7 +187,7 @@ async function fetchQuestionRows(){
   const subjectLabels = subjectEntries.map(([, label]) => label);
   const subjectAliases = BANK_AREA_KEY === "technology" ? ["seguranca_da_informacao"] : [];
   const rows = await fetchAllRows(() => sb
-    .from("questions")
+    .from("questions_public")
     .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,difficulty")
     .in("subject", [...subjectKeys, ...subjectLabels, ...subjectAliases])
     .order("id", { ascending: true }));
@@ -212,7 +212,7 @@ async function fetchAIContent(){
       .eq("subject_id", subject.id)
       .eq("active", true)
       .order("id"),
-    fetchAllRows(() => sb.from("questions")
+    fetchAllRows(() => sb.from("questions_public")
       .select("id,subject,subject_id,topic_id,statement,option_a,option_b,option_c,option_d,difficulty")
       .eq("subject_id", subject.id)
       .order("id", { ascending: true }))
